@@ -67,6 +67,11 @@ This is still a comment #
 This is not a comment
 ```
 
+You can use ```alias``` to create aliases*:
+```
+alias ?0 ~ x
+load x ~ 10
+```
 
 
 
