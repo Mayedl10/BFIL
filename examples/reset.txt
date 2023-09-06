@@ -1,0 +1,31 @@
+memsize 0x8000
+reserve ?16 ~ ?32
+
+load ?0     <- 0
+load ?1     <- 1
+load ?2     <- 2
+load ?3     <- 3
+load ?4     <- 4
+load ?5     <- 5
+load ?6     <- 6
+load ?7     <- 7
+load ?8     <- 8
+load ?9     <- 9
+load ?10    <- 10
+load ?11    <- 11
+load ?12    <- 12
+load ?13    <- 13
+load ?14    <- 14
+load ?15    <- 15
+load ?16    <- 32
+
+vout 16 ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?10 ?11 ?12 ?13 ?14 ?15 <-> ?16
+
+reset
+
+load ?16    <- 32
+
+vout 16 ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?10 ?11 ?12 ?13 ?14 ?15 <-> ?16
+
+
+# NOPE THE INTERPRETER TOOK 21 SECONDS LONGER BECAUSE OF ONE RESET! I WON'T INCLUDE THIS FEATURE! #
