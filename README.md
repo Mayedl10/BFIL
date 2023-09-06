@@ -72,3 +72,5 @@ This is not a comment
 
 <br><br><br><br>
 *You can use anything instead of ~. I like to use "+=", "-=", "<-", "->".
+
+If you want to compile this yourself, I am on windows and used ```g++ *.cpp -o out``` to compile.
