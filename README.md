@@ -78,4 +78,4 @@ load x ~ 10
 <br><br><br><br>
 *You can use anything instead of ~. I like to use "+=", "-=", "<-", "->".
 
-If you want to compile this yourself, I am on windows and used ```g++ *.cpp -o out``` to compile.
+If you want to compile this yourself, I am on windows and used ```g++ *.cpp -o out``` to compile. You may need to modify main.cpp when not using windows.
