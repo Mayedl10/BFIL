@@ -5,7 +5,9 @@
 std::string compile(std::vector<std::string> Tokens_);
 
 struct CodeSnippets {
-    std::string setToZero = "[-]"; // requires no additional data cells
+
+    // requires no additional data cells
+    std::string setToZero = "[-]";
 
     // memory layout: i r r r r r r r (requires 8 adjasent cells)
     std::string numOut = ">>++++++++++<<[->+>-[>+>>]>[+[-<+>]>+>>]<<<<<<]>>[-]>>>++++++++++<[->-[>+>>]>[+[-<+>]>+>>]<<<<<]>[-]>>[>++++++[-<++++++++>]<.<<+>+>[-]]<[<[->-<]++++++[->++++++++<]>.[-]]<<++++++[-<++++++++>]<.[-]<<[-<+>]<";
@@ -25,7 +27,9 @@ struct CodeSnippets {
 };
 
 struct BrainFuckOperations {
+
     // the only reason this exists is because I just don't like having raw data (strings) dangling around my code
+
     std::string plus = "+";
     std::string minus = "-";
 
@@ -40,6 +44,7 @@ struct BrainFuckOperations {
 };
 
 struct OperationRequiredMemory {
+
     int add         = 4;
     int sub         = add;
     int vout        = 12;
@@ -50,17 +55,20 @@ struct OperationRequiredMemory {
     int logic_and   = 8;
     int logic_or    = logic_and;
     int zeroed_cell = 1;
+
 };
 
-struct CompilerErrors {
-    int insufficientReservedMemoryError     = 0;
-    int invalidHexadecimalValue             = 1;
-    int invalidMemoryAddress                = 2;
-    int invalidValueToLoad                  = 3;
-    int invalidComparisonOperator           = 4;
-    int unmatchedEndLoop                    = 5;
-    int unmatchedWNZ                        = 6;
-    int invalidLogicOperator                = 7;
+enum CompilerErrors : int {
+
+    insufficientReservedMemoryError     = 0,
+    invalidHexadecimalValue             = 1,
+    invalidMemoryAddress                = 2,
+    invalidValueToLoad                  = 3,
+    invalidComparisonOperator           = 4,
+    unmatchedEndLoop                    = 5,
+    unmatchedWNZ                        = 6,
+    invalidLogicOperator                = 7
+
 };
 
 // #define COMPILER_DEBUG

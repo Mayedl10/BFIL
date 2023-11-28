@@ -38,8 +38,15 @@ pointer will always end up on i2 at the end
 
 */
 
+static std::string* curTokPtr;
+static std::vector<std::string> Tokens;
+static int tPtr;
+std::vector<std::array<int, 2>> reserved;
+
+
 int debugCTR = 0;
 void debugPrint() {
+
     std::cout << "[Debug]:" << debugCTR << std::endl;
     debugCTR++;
 }
@@ -54,28 +61,37 @@ static void raiseCompilerError(int errorID, std::string message = "", std::strin
         std::cout << "[Compiler error] ";
         std::cout << "Error: " << message << std::endl;
         std::cout << "Error code: " << errorID << std::endl;
+
         if (errorContext != ""){
             std::cout << " Error context: " << errorContext << std::endl;
         }
+
         std::cout << std::endl;
 
     }
+
     hasError = true;
 }
 
 bool isValidHexadecimal(std::string& str) {
+
     if (str.size() < 2 || str.substr(0, 2) != "0x") {
         return false;
     }
+
     for (size_t i = 2; i < str.size(); i++) {
+
         if (!isxdigit(str[i])) {
+
             return false;
         }
     }
+
     return true;
 }
 
 static std::string moveTo(int target, int curPos = *ptrPosPtr) {
+
     if (ptrPosPtr == nullptr) {
         raiseCompilerError(-1, "Used internal function 'moveTo' with ptrPosPtr = nullptr.", "This should never occur. (Hence the id -1)");
         return "[ERROR]";
@@ -83,94 +99,113 @@ static std::string moveTo(int target, int curPos = *ptrPosPtr) {
     } else {
         *ptrPosPtr = target;
         std::string ret = "";
+
         while (curPos < target) {
             ret += ">";
             curPos++;
         }
+
         while (curPos > target) {
             ret += "<";
             curPos--;
         }
+
         return ret;
     }
 }
 
 static std::string addNChars(int n, char c = '+') {
     std::string ret = "";
+
     for (int i = 0; i < n; i++) {
         ret += c;
     }
+
     return ret;
 }
 
 static std::string multiply_string(std::string targetString, int n) {
     std::string ret = "";
+
     for (int i = 0; i < n; i++) {
         ret += targetString;
     }
+
     return ret;
 }
 
-static std::string* curTokPtr;          // oooo raw pointer scary ooooo
-static std::vector<std::string> Tokens;
-static int tPtr;
-CompilerErrors CE;
-std::vector<std::array<int, 2>> reserved;
+
 
 static void getCurTok() {
     *curTokPtr = Tokens[tPtr];
-    //std::cout << Tokens[tPtr] << std::endl;
+
 }
 
 static bool isReserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
+
     for (auto y: reserved_areas) {
+
         if ((address >= y[0]) && (address <= y[1])) {
+
             return true;
         }
     }
+
     return false;
 }
 
 static std::array<int, 2> findReserved_old(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
+
     std::vector<std::array<int, 4>> indexSizePositionVector;
     int ctr = 0;
+
     for (auto intTup: reserved_segments_vector) {
+
         indexSizePositionVector.push_back({ctr, intTup[1]-intTup[0], intTup[0], intTup[1]});
         ctr++;
+
     }
+
     for (auto y: indexSizePositionVector) {
+
         if (y[1] > requiredSize) {
             // found a reserved area with preferred size
             return {y[2], y[3]};
         }
     }
-    raiseCompilerError(CE.insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
+    raiseCompilerError(CompilerErrors::insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
     return {-1,-1};
 }
 
 static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
+
     std::vector<std::array<int, 2>> candidates;
     std::vector<std::array<int, 3>> candidates_and_distances;
     std::array<int, 3> ret;
     
     for (int ctr = 0; ctr < reserved_segments_vector.size(); ctr++) {
+
         if (reserved_segments_vector[ctr][1] - reserved_segments_vector[ctr][0] >= requiredSize) {
+
             candidates.push_back(reserved_segments_vector[ctr]);
         }
     }
 
     if (candidates.empty()) {
-        raiseCompilerError(CE.insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
+
+        raiseCompilerError(CompilerErrors::insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
         return {-1,-1};
     }
     
     for (auto c: candidates) {
+
         candidates_and_distances.push_back({c[0], c[1], abs(c[0] - *ptrPosPtr)});
     }
 
     ret = candidates_and_distances[0];
 
     for (auto c: candidates_and_distances) {
+
         if (c[2] < ret[2]) {
             ret = c;
         }
@@ -184,24 +219,30 @@ static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_
 
 
 static int hexToInt(std::string hexString) {
+
     if (!isValidHexadecimal(hexString)) {
-        raiseCompilerError(CE.invalidHexadecimalValue, "Invalid hexadecimal value.");
+
+        raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
         return -1;
     }
+
     if (hexString.substr(0, 2) == "0x") {
         try {
             return std::stoi(hexString.substr(2), nullptr, 16);
+
         } catch (const std::invalid_argument& e) {
-            raiseCompilerError(CE.invalidHexadecimalValue, "Invalid hexadecimal value.");
+            raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
             return -1;
         }
+
     } else {
-        raiseCompilerError(CE.invalidHexadecimalValue, "Invalid hexadecimal value.");
+        raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
         return -1;
     }
 }
 
 std::string sliceString(const std::string& targetString, int idx1, int idx2) {
+
     int length = targetString.length();
     // Handle negative indices
     if (idx1 < 0) {
@@ -222,20 +263,21 @@ std::string sliceString(const std::string& targetString, int idx1, int idx2) {
 }
 
 static int addressStringToInteger(std::string addressString, std::string prefix = "?") {
+
     try
     {
         return std::stoi(sliceString(addressString, prefix.length(), -1));
     }
     catch(const std::exception& e)
     {
-        raiseCompilerError(CE.invalidMemoryAddress, "Invalid memory address.", addressString);
+        raiseCompilerError(CompilerErrors::invalidMemoryAddress, "Invalid memory address.", addressString);
         return -1;
     }
-    
     
 }
 
 int nearestPowerOfTwo(int n) {
+
     if (n <= 0) {
         return 1; // Minimum power of two is 2^0 = 1
     }
@@ -246,21 +288,23 @@ int nearestPowerOfTwo(int n) {
     }
 
     return power;
+
 }
 
 std::string compile(std::vector<std::string> Tokens_string_vector) {
-    std::string out = "";
-
-    Tokens = Tokens_string_vector; // just doing this so I can use a global variable instead of a local parameter
-
-    tPtr = 0;                   // token "pointer"
-    int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
 
     ReservedWords RW;
     CodeSnippets CS;
     BrainFuckOperations BFO;
     OperationRequiredMemory ORM;
-    
+
+    std::string out = "";
+
+    Tokens = Tokens_string_vector;  // just doing this so I can use a global variable instead of a local parameter
+
+    tPtr = 0;                       // token "pointer"
+    int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
+
     std::string curTok;
     curTokPtr = &curTok;
 
@@ -280,8 +324,6 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     int ptrPosition = 0;
     ptrPosPtr = &ptrPosition;
 
-    //for (auto t: Tokens) std::cout << t << std::endl;
-
     while (tPtr < tPtrLimit) {
         tempInt = 0;
         tempStr = "";
@@ -289,7 +331,6 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
         tempReservedArea = {};
 
         getCurTok(); // use *curTokPtr to access the value
-        //std::cout << *curTokPtr << std::endl;
 
         if (curTokPtr == nullptr) {
             break;
@@ -305,7 +346,8 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = addressStringToInteger(curTok);
 
             if (tempInt >= memsize || tempInt < 0) {
-                raiseCompilerError(CE.invalidMemoryAddress,
+
+                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
                 "Couldn't load into address because it is bigger than specified memory size ('memsize' instruction) or it is less than zero.", 
                 "... 'load ?"+std::to_string(tempInt)+" <- value' ...");
             }
@@ -315,15 +357,20 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             tPtr += 1;
             tPtr += 1;
+
             getCurTok();
+
             if (std::stoi(curTok) < 0 || std::stoi(curTok) > 255) {
-                raiseCompilerError(CE.invalidValueToLoad,
+
+                raiseCompilerError(CompilerErrors::invalidValueToLoad,
                 "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
                 "... 'load ?address <- "+curTok+"' ...");
             }
+
             out += addNChars(std::stoi(curTok), '+');
 
         } else if (curTok == RW.RW_reserve) {
+
             tPtr++;
             getCurTok();
             tempReservedArea[0] = addressStringToInteger(curTok);
@@ -332,8 +379,9 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             getCurTok();
             tempReservedArea[1] = addressStringToInteger(curTok);
 
-            if (tempReservedArea[0]>=memsize || tempReservedArea[1]>=memsize || tempReservedArea[0]<0 || tempReservedArea[1]<0) {
-                raiseCompilerError(CE.invalidMemoryAddress,
+            if ((tempReservedArea[0] >= memsize) || (tempReservedArea[1] >= memsize) || (tempReservedArea[0] < 0) || (tempReservedArea[1] < 0)) {
+
+                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
                 "Couldn't reserve memory area as it is bigger than specified memory size ('memsize' instruction) or it is less than zero.",
                 "... 'reserve ?"+std::to_string(tempReservedArea[0])+" ~ ?"+std::to_string(tempReservedArea[1])+"' ...");
             }
@@ -341,6 +389,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             reserved.push_back(tempReservedArea);
 
         } else if (curTok == RW.RW_add) {
+
             tempStr = "";
             tempIntVect.clear();    // forgetting this line. caused me to spend 4 HOURS TRYING TO FIGURE OUT WHY IT WASN'T WORKING! I EVEN FUCKING REWROTE THIS ENTIRE PART AAAA
             tempReservedArea = findReserved(reserved, ORM.add); // reserved area with required size
@@ -427,7 +476,9 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             }
 
             out += tempStr;
+
         } else if (curTok == RW.RW_sub) {
+
             tempStr = "";
             tempIntVect.clear();    // forgetting this line. caused me to spend 4 HOURS TRYING TO FIGURE OUT WHY IT WASN'T WORKING! I EVEN FUCKING REWROTE THIS ENTIRE PART AAAA
             tempReservedArea = findReserved(reserved, ORM.add); // reserved area with required size
@@ -516,6 +567,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_aout) {
+
             tPtr++;
             getCurTok();
             tempInt = std::stoi(curTok);    // amount of parameters
@@ -539,6 +591,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_vout) {
+
             tempStr = "";
             tempInt = 0;
             tempIntVect.clear();
@@ -638,6 +691,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_compare) {
+
             tempStr = "";
             tempInt = 0;
             tempIntVect.clear();
@@ -741,16 +795,20 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             // .8  depending on "comparisonMode", move to either r[0], r[1] or r[2] and move that value to the output parameter.
             if (comparisonMode == "=") {
+
                 tempStr += moveTo(tempReservedArea[0]);
 
             } else if (comparisonMode == ">") {
+
                 tempStr += moveTo(tempReservedArea[0]+1);
 
             } else if (comparisonMode == "<") {
+
                 tempStr += moveTo(tempReservedArea[0]+2);
 
             } else {
-                raiseCompilerError(CE.invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
+                
+                raiseCompilerError(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
             }
 
             tempStr += BFO.openBr;                          // [
@@ -759,16 +817,20 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempStr += BFO.plus;                            //  +
 
             if (comparisonMode == "=") {                    //  <<<
+
                 tempStr += moveTo(tempReservedArea[0]);
 
             } else if (comparisonMode == ">") {
+
                 tempStr += moveTo(tempReservedArea[0]+1);
 
             } else if (comparisonMode == "<") {
+
                 tempStr += moveTo(tempReservedArea[0]+2);
 
             } else {
-                raiseCompilerError(CE.invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
+
+                raiseCompilerError(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
             }
 
             tempStr += BFO.closeBr;
@@ -796,10 +858,13 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              -William Shakespeare: The tempest, act 5, scene 1          
              */
 
+            // I added this as a joke because of the incredible fuckery I make my compiler do here. I give over the control over the pointer to the comparison algorithm and have to trust that it always ends up at the same position.
+
 
             out += tempStr;
         
         } else if (curTok == RW.RW_copy) {
+
             tempStr = "";
             tempInt = 0;
             tempIntVect.clear();
@@ -818,7 +883,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              /*
             steps:
 
-            ,. find and sanitize reserved area
+            0. find and sanitize reserved area
             1. copy source and paste it twice in r[0:1]
             2. move r[0] to source
             3. move r[1] to target
@@ -849,6 +914,10 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempStr += BFO.closeBr;                     // ]
 
             // .2
+
+            tempStr += moveTo(tempIntVect[1]);
+            tempStr += CS.setToZero;
+
             tempStr += moveTo(tempReservedArea[0]);     // moveto r[0]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab value
@@ -880,6 +949,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_wnz) {
+
             tempStr = "";
 
              /*
@@ -903,6 +973,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_endLoop) {
+
             tempStr = "";
             tempInt = 0;
 
@@ -917,7 +988,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             // .3
             if (loopingAddressesStack.empty()) {
-                raiseCompilerError(CE.unmatchedEndLoop, "Unmatched 'endLoop'. This means there are more 'endLoop' statements than 'whileNotZero' statements.");
+                raiseCompilerError(CompilerErrors::unmatchedEndLoop, "Unmatched 'endLoop'. This means there are more 'endLoop' statements than 'whileNotZero' statements.");
             } else {
                 tempInt = loopingAddressesStack.top();
                 loopingAddressesStack.pop();    
@@ -931,6 +1002,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_empty) {
+
             tempStr = "";
             tempIntVect.clear();
             
@@ -955,6 +1027,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_increment) {
+
             tempStr = "";
             tempInt = 0;
 
@@ -969,6 +1042,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_decrement) {
+
             tempStr = "";
             tempInt = 0;
 
@@ -983,6 +1057,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_read) {
+
             tempStr = "";
             tempInt = 0;
 
@@ -997,6 +1072,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_cout){
+
             tempStr = "";
             tempReservedArea = {};
             tempIntVect.clear();
@@ -1015,13 +1091,13 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 tempInt = c;
                 tempStr += CS.setToZero;
                 tempStr += addNChars(tempInt, '+');
-                std::cout << tempInt << " ";
                 tempStr += BFO.asciiOut;
             }
 
             out += tempStr+CS.setToZero;
 
         } else if (curTok == RW.RW_logic) {
+
             tempStr = "";
             tempReservedArea = {};
             tempIntVect.clear();
@@ -1188,6 +1264,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 }
 
             } else if (logicMode == RW.RW_LM_or) {
+
                 tempReservedArea = findReserved(reserved, ORM.logic_and);
 
                 tPtr += 2;
@@ -1351,7 +1428,8 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
 
             } else {
-                raiseCompilerError(CE.invalidLogicOperator,
+
+                raiseCompilerError(CompilerErrors::invalidLogicOperator,
                 "Invalid operator for 'logic' statement.",
                 "... 'logic ?address " + logicMode + "' ...");
             }
@@ -1359,6 +1437,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             out += tempStr;
 
         } else if (curTok == RW.RW_alias) {
+
             tPtr++;
             getCurTok();
             tempStr = curTok;
@@ -1373,6 +1452,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             }
 
         } else if (curTok == RW.RW_loads) {
+
             tempStr = "";
             tempInt = 0;
             tempIntVect.clear();
@@ -1384,7 +1464,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempStr += moveTo(tempInt);
 
             if (tempInt < 0 || tempInt >= memsize) {
-                raiseCompilerError(CE.invalidMemoryAddress,
+                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
                 "Couldn't load into address because it is bigger than specified memory size ('memsize' instruction) or it is less than zero.", 
                 "... 'loads ?"+std::to_string(tempInt)+"...");
             }
@@ -1395,19 +1475,22 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tPtr++;
 
             for (int i = 0; i < tempInt; i++) {
+
                 tPtr++;
                 getCurTok();
                 tempIntVect.push_back(std::stoi(curTok));
             }
 
             for (int y: tempIntVect) {
+
                 tempStr += CS.setToZero;
                 tempStr += addNChars(y, '+');
                 tempStr += moveTo(ptrPosition+1);
-                if (y > 255 || y < 0) {
-                    raiseCompilerError(CE.invalidValueToLoad,
-                "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
-                "... 'loads "+curTok+"' ...");
+
+                if ((y > 255) || (y < 0)) {
+                    raiseCompilerError(CompilerErrors::invalidValueToLoad,
+                    "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
+                    "... 'loads "+curTok+"' ...");
                 }
             }
 
@@ -1418,10 +1501,10 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     }
 
     if (!loopingAddressesStack.empty()) {
-        raiseCompilerError(CE.unmatchedEndLoop, "Unmatched 'whileNotZero' statement. This means that there are more 'whileNotZero' statements than 'endLoop' statements.");
+        raiseCompilerError(CompilerErrors::unmatchedEndLoop, "Unmatched 'whileNotZero' statement. This means that there are more 'whileNotZero' statements than 'endLoop' statements.");
     }
     
-//#undef COMPILER_DEBUG
+
 #ifdef COMPILER_DEBUG
     std::cout << "\n\n--------Debug--------\nMemsize: " << memsize << "\nReserved memory areas (inclusive):"  << std::endl;
     for (auto i: reserved) {
@@ -1429,9 +1512,11 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     }
 #endif
 
-    std::cout << "Exited compilation with a total of "+std::to_string(errorCount)+" compilation errors.\nAt max one of them has been displayed." << std::endl;
-
-    curTokPtr = nullptr;    // deleting these pointers sometimes crashes the compiler, sometimes not so I'm just gonna nullptr them instead.
+    if (errorCount) {
+        std::cout << "Exited compilation with a total of "+std::to_string(errorCount)+" compilation errors.\nAt max one of them has been displayed." << std::endl;
+    }
+    
+    curTokPtr = nullptr;
     ptrPosPtr = nullptr;
 
     if (errorCount == 0){
