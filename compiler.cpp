@@ -38,6 +38,7 @@ pointer will always end up on i2 at the end
 
 */
 
+int* ptrPosPtr = nullptr;
 static std::string* curTokPtr;
 static std::vector<std::string> Tokens;
 static int tPtr;
@@ -51,26 +52,52 @@ void debugPrint() {
     debugCTR++;
 }
 
-bool hasError = false;
 int errorCount = 0;
-int* ptrPosPtr = nullptr;
+int warnCount = 0;
 
-static void raiseCompilerError(int errorID, std::string message = "", std::string errorContext = "") {
-    errorCount++;
-    if (!hasError) {
+static inline void raiseCompilerError(int errorID, std::string message = "", std::string errorContext = "") {
+    if (errorCount == 0) {
         std::cout << "[Compiler error] ";
         std::cout << "Error: " << message << std::endl;
         std::cout << "Error code: " << errorID << std::endl;
 
-        if (errorContext != ""){
+        if (errorContext.size() > 0){
+
             std::cout << " Error context: " << errorContext << std::endl;
         }
 
         std::cout << std::endl;
 
+    } else if (errorCount == 1) {
+
+        std::cout << "[Further errors will be supressed]\n" << std::endl;
     }
 
-    hasError = true;
+    errorCount++;
+}
+
+static inline void raiseCompilerWarning(int warningID, std::string message = "", std::string warningContext = "") {
+
+    if (warnCount == 0) {
+
+        std::cout << "[Compiler Warning] ";
+        std::cout << "Warning: " << message << std::endl;
+        std::cout << "Warning code: " << warningID << std::endl;
+
+        if (warningContext.size() > 0) {
+
+            std::cout << "Warning context: " << warningContext << std::endl;
+        }
+
+        std::cout << std::endl;
+
+    } else if (warnCount == 1) {
+
+        std::cout << "[Further warnings will be supressed]\n" << std::endl;
+    }
+
+    warnCount++;
+
 }
 
 bool isValidHexadecimal(std::string& str) {
@@ -90,7 +117,7 @@ bool isValidHexadecimal(std::string& str) {
     return true;
 }
 
-static std::string moveTo(int target, int curPos = *ptrPosPtr) {
+static inline std::string moveTo(int target, int curPos = *ptrPosPtr) {
 
     if (ptrPosPtr == nullptr) {
         raiseCompilerError(-1, "Used internal function 'moveTo' with ptrPosPtr = nullptr.", "This should never occur. (Hence the id -1)");
@@ -154,27 +181,16 @@ static bool isReserved(int address, std::vector<std::array<int, 2>> reserved_are
     return false;
 }
 
-static std::array<int, 2> findReserved_old(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
+static bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_vector, std::array<int, 2> addresses) {   
+    std::vector<int> addressRange = range(addresses[0], addresses[1]);
 
-    std::vector<std::array<int, 4>> indexSizePositionVector;
-    int ctr = 0;
-
-    for (auto intTup: reserved_segments_vector) {
-
-        indexSizePositionVector.push_back({ctr, intTup[1]-intTup[0], intTup[0], intTup[1]});
-        ctr++;
-
-    }
-
-    for (auto y: indexSizePositionVector) {
-
-        if (y[1] > requiredSize) {
-            // found a reserved area with preferred size
-            return {y[2], y[3]};
+    for (auto a: addressRange) {
+        if (isReserved(a, reserved_segments_vector)) {
+            return true;
         }
     }
-    raiseCompilerError(CompilerErrors::insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
-    return {-1,-1};
+
+    return false;
 }
 
 static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
@@ -345,6 +361,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             getCurTok();
             tempInt = addressStringToInteger(curTok);
 
+            if (reserved_overlap(reserved, {tempInt, tempInt})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'load " + curTok + " <- value' ..." 
+                );
+            }
+
             if (tempInt >= memsize || tempInt < 0) {
 
                 raiseCompilerError(CompilerErrors::invalidMemoryAddress,
@@ -397,10 +421,26 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tPtr++;
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // param 1 ... idx[0]
+            
+            if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'add " + curTok + " <- address' ..." 
+                );
+            }
 
             tPtr+=2;
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // param 2 ... idx[1]
+
+            if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'add address <- " + curTok + "' ..." 
+                );
+            }
 
             // code gen
 
@@ -487,9 +527,25 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // param 1 ... idx[0]
 
+            if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'sub " + curTok + " <- address' ..." 
+                );
+            }
+
             tPtr+=2;
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // param 2 ... idx[1]
+
+            if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'add address <- " + curTok + "' ..." 
+                );
+            }
 
             // code gen
 
@@ -874,9 +930,25 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // get target
 
+            if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'copy " + curTok + " <- address' ..." 
+                );
+            }
+
             tPtr+=2;
             getCurTok();
             tempIntVect.push_back(addressStringToInteger(curTok)); // get source
+
+            if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'copy address <- " + curTok + "' ..." 
+                );
+            }
 
             // tempIntVect[0]...target ; [1]...source
 
@@ -1036,6 +1108,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             tempInt = addressStringToInteger(curTok);
 
+            if (reserved_overlap(reserved, {tempInt, tempInt})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'increment " + curTok + "' ..." 
+                );
+            }
+
             tempStr += moveTo(tempInt);
             tempStr += BFO.plus;
 
@@ -1051,6 +1131,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             tempInt = addressStringToInteger(curTok);
 
+            if (reserved_overlap(reserved, {tempInt, tempInt})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'decrement " + curTok + "' ..." 
+                );
+            }
+
             tempStr += moveTo(tempInt);
             tempStr += BFO.minus;
 
@@ -1065,6 +1153,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             getCurTok();
 
             tempInt = addressStringToInteger(curTok);
+
+            if (reserved_overlap(reserved, {tempInt, tempInt})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'read " + curTok + "' ..." 
+                );
+            }
 
             tempStr += moveTo(tempInt);
             tempStr += BFO.input;
@@ -1121,6 +1217,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 tPtr += 2;
                 getCurTok();
                 tempIntVect.push_back(addressStringToInteger(curTok)); // [2] is output
+
+                if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
+                    
+                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    "Using a reserved address is not recommended!",              
+                    "... 'logic address and address -> " + curTok + "' ..." 
+                    );
+                }
                 
                 // and mode
                 // steps:
@@ -1274,6 +1378,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 getCurTok();
                 tempIntVect.push_back(addressStringToInteger(curTok)); // [2] is output
 
+                if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
+                    
+                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    "Using a reserved address is not recommended!",              
+                    "... 'logic address or address -> " + curTok + "' ..." 
+                    );
+                }
+
                 // or mode
                 // steps:
                  /*
@@ -1391,6 +1503,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 getCurTok();
                 tempIntVect.push_back(addressStringToInteger(curTok));  // [1] = target
 
+                if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
+                    
+                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    "Using a reserved address is not recommended!",              
+                    "... 'logic address not -> " + curTok + "' ..." 
+                    );
+                }
+
                 // copy source to r[0:1]
                 tempStr += moveTo(tempIntVect[0]);
                 tempStr += BFO.openBr;
@@ -1469,6 +1589,14 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                 "... 'loads ?"+std::to_string(tempInt)+"...");
             }
 
+            if (reserved_overlap(reserved, {tempInt, tempInt})) {
+                
+                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                "Using a reserved address is not recommended!",              
+                "... 'loads " + curTok + " ~ address : values' ..."
+                );
+            }
+
             tPtr+=2;
             getCurTok();
             tempInt = std::stoi(curTok);
@@ -1492,6 +1620,15 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                     "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
                     "... 'loads "+curTok+"' ...");
                 }
+
+                if (reserved_overlap(reserved, {y, y})) {
+                    
+                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    "Using a reserved address is not recommended!",              
+                    "... 'loads address ~ address : values' ...\nA loads statement is trying to write to address ?" + std::to_string(y)
+                    );
+                }
+
             }
 
             out += tempStr;
@@ -1522,7 +1659,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     if (errorCount == 0){
         return out;
     } else {
-        return "do_not_output";
+        return "do not output";
     }
 
 }

@@ -74,8 +74,9 @@ int main(int argc, char* argv[]) {
     auto tokens = tokenize(fileContent);
     std::string compiledCode = compile(tokens);
 
-    if (compiledCode != "do_not_output") {
+    if (compiledCode != "do not output") {
         writeToFile(oFile, "", compiledCode);
+        
     } else {
         std::cout << "------------------------------------------------------------------\n|Code will not be saved to file due to errors during compilation.|\n------------------------------------------------------------------" << std::endl;
         return 1;

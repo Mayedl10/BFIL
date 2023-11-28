@@ -60,14 +60,20 @@ struct OperationRequiredMemory {
 
 enum CompilerErrors : int {
 
-    insufficientReservedMemoryError     = 0,
-    invalidHexadecimalValue             = 1,
-    invalidMemoryAddress                = 2,
-    invalidValueToLoad                  = 3,
-    invalidComparisonOperator           = 4,
-    unmatchedEndLoop                    = 5,
-    unmatchedWNZ                        = 6,
-    invalidLogicOperator                = 7
+    insufficientReservedMemoryError,
+    invalidHexadecimalValue,
+    invalidMemoryAddress,
+    invalidValueToLoad,
+    invalidComparisonOperator,
+    unmatchedEndLoop,
+    unmatchedWNZ,
+    invalidLogicOperator
+
+};
+
+enum CompilerWarnings : int {
+
+    accessingReservedAddress
 
 };
 
