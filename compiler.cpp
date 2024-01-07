@@ -1632,6 +1632,27 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             }
 
             out += tempStr;
+        
+        } else if (curTok == RW.RW_inline) {
+
+            out += " ";
+            tPtr++;
+            getCurTok();
+
+            if (stringContains(curTok, BFO.allOps)) {
+
+                raiseCompilerWarning(CompilerWarnings::reservedInlineCharacter, 
+                "Your inline statement could lead to errors because it contains one of the following characters: " + BFO.allOps,
+                "... 'inline " + curTok + "' ..."
+                );
+
+            }
+
+            out += curTok;
+            out += " ";
+
+            // raise warning if the thing contains "bad" characters. (+-<>[].;)
+
         }
 
         tPtr++;

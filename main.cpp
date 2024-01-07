@@ -6,6 +6,12 @@
 #include "fileIO.hpp"
 #include "lexer.hpp"
 
+#define pressEnterToContinue do { \
+        std::cout << "Press enter to close this window."; \
+        std::cin.get(); \
+        std::cout << std::endl; \
+    } while (0)
+
 int main(int argc, char* argv[]) {
 
     std::string filename = "file.bfil";
@@ -13,10 +19,12 @@ int main(int argc, char* argv[]) {
     std::string oFileExt = "bf";
     std::string filePath = "";
     std::string oFilePath = "";
+    bool keepWindowOpen = false;
 
     if (argc <= 1) {
 
         std::cout << "Please provide valid arguments." << std::endl;
+
         return 0;
     }
 
@@ -49,6 +57,12 @@ int main(int argc, char* argv[]) {
             i++;
             oFilePath = argv[i];
         }
+
+        if (strcmp(argv[i], "-k") == 0) {
+
+            keepWindowOpen = true;
+
+        }
     }
 
 
@@ -79,8 +93,17 @@ int main(int argc, char* argv[]) {
         
     } else {
         std::cout << "------------------------------------------------------------------\n|Code will not be saved to file due to errors during compilation.|\n------------------------------------------------------------------" << std::endl;
+        
+        if (keepWindowOpen) {
+            
+            pressEnterToContinue;
+
+        }
+        
         return 1;
     }
+
+    pressEnterToContinue;
 
     return 0;
 }

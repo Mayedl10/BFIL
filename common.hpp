@@ -20,6 +20,7 @@ struct ReservedWords {
     std::string RW_empty        = "empty";          // sets a range of addresses to 0
     std::string RW_endLoop      = "endLoop";        // }
     std::string RW_increment    = "increment";      // increment value
+    std::string RW_inline       = "inline";         // keep stuff in output
     std::string RW_load         = "load";           // load value into address
     std::string RW_loads        = "loads";          // load, but with multiple values
     std::string RW_logic        = "logic";          // and or not xor
@@ -42,5 +43,5 @@ struct Token {
 };
 
 std::vector<int> range (int a, int b);
-
+bool stringContains (std::string master, std::string chars);
 #endif

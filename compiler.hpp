@@ -41,6 +41,9 @@ struct BrainFuckOperations {
 
     std::string openBr = "[";
     std::string closeBr = "]";
+
+    std::string allOps = "+-<>.,[]";
+
 };
 
 struct OperationRequiredMemory {
@@ -73,7 +76,8 @@ enum CompilerErrors : int {
 
 enum CompilerWarnings : int {
 
-    accessingReservedAddress
+    accessingReservedAddress,
+    reservedInlineCharacter
 
 };
 

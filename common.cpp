@@ -9,3 +9,21 @@ std::vector<int> range (int a, int b){
 
     return rangeVect;
 }
+
+bool stringContains (std::string master, std::string chars) {
+
+    for (char mc: master) {
+
+        for (char cc: chars) {
+
+            if (cc == mc) {
+                return true;
+            }
+
+        }
+
+    }
+
+    return false;
+
+}
