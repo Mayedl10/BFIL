@@ -21,7 +21,7 @@ To load a value into an address, use `load ?0 ~ 10`*
 
 You can also load multiple values using `loads ?0 ~ 8 ~ 1 2 3 4 5 6 7 8`*
 
-You can add numbers using add: `add ?0 ~ ?1```* This means `?0 += ?1`.
+You can add numbers using add: `add ?0 ~ ?1`* This means `?0 += ?1`.
 
 You can do the same with subtraction by using "sub" instead of "add".
 
