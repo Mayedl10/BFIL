@@ -88,3 +88,5 @@ results in `someCode test someCode`
 *You can use anything instead of ~. I like to use "+=", "-=", "<-", "->".
 
 If you want to compile this yourself, I am on windows and used `g++ *.cpp` to compile. This should work, assuming you're running `g++` in the source directory. You may need to modify `main.cpp` when not using Windows because of filepath stuff because Windows just likes its `\`s for paths. `main.cpp` is just responsible for the command line interface so you could easily make your own if you don't like that mess of a command-parameter-thing I coded.
+
+Feel free to open an issue if you have a suggestion or encounter a bug!
