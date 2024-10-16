@@ -55,7 +55,7 @@ void debugPrint() {
 int errorCount = 0;
 int warnCount = 0;
 
-static inline void raiseCompilerError(int errorID, std::string message = "", std::string errorContext = "") {
+void raiseCompilerError(int errorID, std::string message = "", std::string errorContext = "") {
     if (errorCount == 0) {
         std::cout << "[Compiler error] ";
         std::cout << "Error: " << message << std::endl;
