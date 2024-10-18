@@ -3,9 +3,13 @@ Brainfuck intermediate language
 
 Use the compiler with the following options:
 -h          help
+
 -i  path    input file path (eg. "/foo/bar/test.bfil")
+
 -o  path    output filename (eg. "/foo/bar/test.bf")
+
 -k          keep the window open after compilation is finished
+
 -O n        optimise at optimisation level n (1 removes redundant patterns like +-, 2 does that and removes all characters except +-<>,.[] and \n)
 
 Example usage: `BFIL -f compare.bfil -p "path" -P "path" -o "compare"`
