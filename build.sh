@@ -4,15 +4,9 @@ ScriptPath="$(realpath "$0")"
 ScriptDirectory="$(dirname "$ScriptPath")"
 cd "$ScriptDirectory"
 
-outFile="main.exe"
+outFile="main"
 binaryPath="./$outFile"
 srcFolder="src"
 includeFolder="include"
 
-g++ $srcFolder/*.cpp -I $includeFolder -o $outFile
-
-if [[ ! -f "$binaryPath" ]]; then
-    echo "[Compilation Failed]"
-else
-    echo "[Compilation Successful]"
-fi
+g++ $srcFolder/*.cpp -I $includeFolder -o $outFile && echo "[Compilation Successful]" || echo "[Compilation Failed]"

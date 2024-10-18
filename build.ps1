@@ -7,6 +7,10 @@ $binaryPath = "./$outFile"
 $srcFolder = "src"
 $includeFolder = "include"
 
+if (Test-Path $binaryPath) {
+    Remove-Item $binaryPath
+}
+
 g++ $srcFolder/*.cpp -I $includeFolder -o $outFile
 
 if (!(Test-Path $binaryPath)) {
