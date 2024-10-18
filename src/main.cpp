@@ -1,10 +1,12 @@
 #include <iostream>
 #include <cstring>
+#include <string>
 
 #include "common.hpp"
 #include "compiler.hpp"
 #include "fileIO.hpp"
 #include "lexer.hpp"
+#include "optimise.hpp"
 
 void press_enter_to_continue() {
     std::cout << "Press enter to continue";
@@ -17,6 +19,7 @@ int main(int argc, char* argv[]) {
     std::string inputFile = "";
     std::string outputFile = "";
     bool keepWindowOpen = false;
+    bool optimisationLevel = 0;
 
     if (argc <= 1) {
 
@@ -40,7 +43,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (strcmp(argv[i], "-O") == 0) {
-            std::cout << "[Compiler flag -O is yet to be implemented. No optimisations will occur.]" << std::endl;
+            optimisationLevel = std::stoi(argv[++i]);
+
         }
 
         if (strcmp(argv[i], "-h") == 0) {
@@ -57,8 +61,8 @@ int main(int argc, char* argv[]) {
     }
 
 
-    if (outputFile == "") {
-        std::cout << " [Please provide a file to write to]" << std::endl;
+    if (outputFile == "" || inputFile == "") {
+        std::cout << " [Please provide a file to write to/read from]" << std::endl;
     }
 
     std::string fileContent;
@@ -77,7 +81,14 @@ int main(int argc, char* argv[]) {
     auto tokens = tokenize(fileContent);
     std::string compiledCode = compile(tokens);
 
-    if (compiledCode != "do not output") {
+    if (optimisationLevel) {
+        compiledCode = optimise_code(compiledCode, optimisationLevel);
+
+    }
+
+    std::cout << "compiledCode: " << compiledCode << std::endl; 
+
+    if (compiledCode != "\n") {
         writeToFile(outputFile, "", compiledCode);
         
     } else {

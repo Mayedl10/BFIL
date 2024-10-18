@@ -1680,7 +1680,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     if (errorCount == 0){
         return out;
     } else {
-        return "do not output";
+        return "\n";
     }
 
 }
