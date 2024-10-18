@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <utility>
+#include <cctype>
 
 struct ReservedWords {
 

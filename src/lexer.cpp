@@ -59,7 +59,7 @@ std::vector<std::string> tokenize(std::string code) {
 
     ReservedWords RW;
 
-    code = " " + cleanSpaces(replaceSubChar(replaceSubChar(code, '\t', ' '), '\n', ' ')) + " ";
+    code = " " + cleanSpaces(replaceSubChar(replaceSubChar(replaceSubChar(code, '\r', ' '), '\t', ' '), '\n', ' ')) + " ";
 
     std::vector<std::string> retV;
     std::string tempString;

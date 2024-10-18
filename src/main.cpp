@@ -71,7 +71,6 @@ int main(int argc, char* argv[]) {
     {
         fileContent = getFileContentAsString(inputFile);
     }
-
     catch(const std::exception& e)
     {
         std::cout << "[Couldn't read input file]" << std::endl;

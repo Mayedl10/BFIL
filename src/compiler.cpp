@@ -108,7 +108,7 @@ bool isValidHexadecimal(std::string& str) {
 
     for (size_t i = 2; i < str.size(); i++) {
 
-        if (!isxdigit(str[i])) {
+        if (!(std::isxdigit(str[i]))) {
 
             return false;
         }
@@ -235,6 +235,8 @@ static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_
 
 
 static int hexToInt(std::string hexString) {
+
+    std::cout << hexString << std::endl;
 
     if (!isValidHexadecimal(hexString)) {
 
