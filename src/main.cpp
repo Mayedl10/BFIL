@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
             << "-o output filename (eg. \"/foo/bar/test.bf\")\n"
             << "-k keep the window open after compilation is finished\n"
             << "-O optimise (not yet implemented, see issue #14)\n\n"
-            << "If you encounter any bugs or have feature suggestions, please visit https://github.com/Mayedl10/BFIL/"
+            << "If you encounter any bugs or have feature suggestions, please visit https://github.com/Mayedl10/BFIL/ and open an issue"
             << std::endl;
         }
 
