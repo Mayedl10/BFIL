@@ -4,14 +4,15 @@ Set-Location -Path $ScriptDirectory
 
 $outFile = "main.exe"
 $binaryPath = "./$outFile"
-$srcFolder = "src"
+$srcFolderA = "src"
+$srcFolderB = "src/instr"
 $includeFolder = "include"
 
 if (Test-Path $binaryPath) {
     Remove-Item $binaryPath
 }
 
-g++ $srcFolder/*.cpp -I $includeFolder -o $outFile
+g++ $srcFolderA/*.cpp $srcFolderB/*.cpp -I $includeFolder -o $outFile
 
 if (!(Test-Path $binaryPath)) {
     Write-Host "[Compilation Failed]"

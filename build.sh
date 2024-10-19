@@ -6,7 +6,8 @@ cd "$ScriptDirectory"
 
 outFile="main"
 binaryPath="./$outFile"
-srcFolder="src"
+srcFolderA="src"
+srcFolderB="src/instr"
 includeFolder="include"
 
-g++ $srcFolder/*.cpp -I $includeFolder -o $outFile && echo "[Compilation Successful]" || echo "[Compilation Failed]"
+g++ $srcFolderA/*.cpp $srcFolderB/*.cpp -I $includeFolder -o $outFile && echo "[Compilation Successful]" || echo "[Compilation Failed]"
