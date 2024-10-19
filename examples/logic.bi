@@ -1,0 +1,80 @@
+memsize 0x8000
+reserve ?16 ~ ?32
+
+load ?3 = 32
+
+
+# and
+load ?0 <- 0
+load ?1 <- 0
+logic ?0 and ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 0
+load ?1 <- 1
+logic ?0 and ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 1
+load ?1 <- 0
+logic ?0 and ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 1
+load ?1 <- 1
+logic ?0 and ?1 -> ?2
+vout 1 ?2 <-> ?3
+#
+
+load ?0 <- 0
+load ?1 <- 0
+logic ?0 or ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 0
+load ?1 <- 1
+logic ?0 or ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 1
+load ?1 <- 0
+logic ?0 or ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+load ?0 <- 1
+load ?1 <- 1
+logic ?0 or ?1 -> ?2
+vout 1 ?2 <-> ?3
+
+
+
+
+
+
+# not
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+logic ?0 not -> ?0
+vout 1 ?0 | ?-1
+aout 1 ?3
+
+empty ?0 ~ ?3
+#
