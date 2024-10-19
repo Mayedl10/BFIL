@@ -13,6 +13,7 @@ extern std::vector<std::array<int, 2>> reserved;
 extern int errorCount;
 extern int warnCount;
 extern std::string curTok;
+extern bool displayWarnings; 
 ////////////////////////////////////////// GLOBAL VARIABLES //////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +31,7 @@ int hex_to_int(std::string hexString);
 std::string slice_string(const std::string& targetString, int idx1, int idx2);
 int address_string_to_int(std::string addressString, std::string prefix = "?");
 inline int nearest_power_of_two(int n);
-std::string compile(std::vector<std::string> Tokens_);
+std::string compile(std::vector<std::string> Tokens_, bool displayWarnings);
 
 inline std::string move_to(int target, int curPos) {
 

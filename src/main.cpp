@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
     std::string inputFile = "";
     std::string outputFile = "";
     bool keepWindowOpen = false;
-    bool optimisationLevel = 0;
+    int optimisationLevel = 0;
+    bool displayWarnings = true;
 
     if (argc <= 1) {
 
@@ -56,6 +57,12 @@ int main(int argc, char* argv[]) {
             << "-O optimise (not yet implemented, see issue #14)\n\n"
             << "If you encounter any bugs or have feature suggestions, please visit https://github.com/Mayedl10/BFIL/ and open an issue"
             << std::endl;
+        
+        }
+
+        if (strcmp(argv[i], "-c") == 0) {
+            displayWarnings = false;
+        
         }
 
     }
@@ -78,7 +85,7 @@ int main(int argc, char* argv[]) {
     }
     
     auto tokens = tokenize(fileContent);
-    std::string compiledCode = compile(tokens);
+    std::string compiledCode = compile(tokens, displayWarnings);
 
     if (optimisationLevel) {
         compiledCode = optimise_code(compiledCode, optimisationLevel);

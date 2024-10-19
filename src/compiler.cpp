@@ -52,6 +52,7 @@ std::vector<std::array<int, 2>> reserved;
 int errorCount;
 int warnCount;
 std::string curTok;
+bool displayWarnings; 
 
 ReservedWords RW;
 CodeSnippets CS;
@@ -70,10 +71,11 @@ void debug_print() {
 }
 #endif
 
-static void define_globals() {
+static void define_globals(bool displayWarnings) {
     errorCount = 0;
     ptrPosPtr = nullptr;
     warnCount = 0;
+    displayWarnings = displayWarnings;
 }
 
 void raise_compiler_error(int errorID, std::string message, std::string errorContext) {
@@ -99,22 +101,26 @@ void raise_compiler_error(int errorID, std::string message, std::string errorCon
 
 void raise_compiler_warning(int warningID, std::string message, std::string warningContext) {
 
-    if (warnCount == 0) {
+    if (displayWarnings) {
 
-        std::cout << "[Compiler Warning] ";
-        std::cout << "Warning: " << message << std::endl;
-        std::cout << "Warning code: " << warningID << std::endl;
+        if (warnCount == 0) {
 
-        if (warningContext.size() > 0) {
+            std::cout << "[Compiler Warning] ";
+            std::cout << "Warning: " << message << std::endl;
+            std::cout << "Warning code: " << warningID << std::endl;
 
-            std::cout << "Warning context: " << warningContext << std::endl;
+            if (warningContext.size() > 0) {
+
+                std::cout << "Warning context: " << warningContext << std::endl;
+            }
+
+            std::cout << std::endl;
+
+        } else if (warnCount == 1) {
+
+            std::cout << "[Further warnings will be supressed]\n" << std::endl;
         }
-
-        std::cout << std::endl;
-
-    } else if (warnCount == 1) {
-
-        std::cout << "[Further warnings will be supressed]\n" << std::endl;
+    
     }
 
     warnCount++;
@@ -289,9 +295,9 @@ int address_string_to_int(std::string addressString, std::string prefix) {
     
 }
 
-std::string compile(std::vector<std::string> Tokens_string_vector) {
+std::string compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
-    define_globals();
+    define_globals(displayWarnings);
 
     std::string out = "";
 
