@@ -13,6 +13,8 @@ Use the compiler with the following options:
 
 `-O n`        `optimise` at optimisation level n (1 removes redundant patterns like +-, 2 does that and removes all characters except +-<>,.[] and \n)
 
+`-c`          `concise` - disable warnings
+
 Example usage: `BFIL -f compare.bfil -p "path" -P "path" -o "compare"`
 <br/><br/><br/>-----<br/><br/><br/>
 Numbers that have a ? in front of them are addresses.
