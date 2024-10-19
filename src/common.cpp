@@ -10,7 +10,7 @@ std::vector<int> range (int a, int b){
     return rangeVect;
 }
 
-bool stringContains (std::string master, std::string chars) {
+bool string_contains (std::string master, std::string chars) {
 
     for (char mc: master) {
 

@@ -45,17 +45,19 @@ static int tPtr;
 std::vector<std::array<int, 2>> reserved;
 
 
+#ifdef COMPILER_DEBUG
+// unused
 int debugCTR = 0;
-void debugPrint() {
-
+void debug_print() {
     std::cout << "[Debug]:" << debugCTR << std::endl;
     debugCTR++;
 }
+#endif
 
 int errorCount = 0;
 int warnCount = 0;
 
-void raiseCompilerError(int errorID, std::string message = "", std::string errorContext = "") {
+void raise_compiler_error(int errorID, std::string message = "", std::string errorContext = "") {
     if (errorCount == 0) {
         std::cout << "[Compiler error] ";
         std::cout << "Error: " << message << std::endl;
@@ -76,7 +78,7 @@ void raiseCompilerError(int errorID, std::string message = "", std::string error
     errorCount++;
 }
 
-static inline void raiseCompilerWarning(int warningID, std::string message = "", std::string warningContext = "") {
+void raise_compiler_warning(int warningID, std::string message = "", std::string warningContext = "") {
 
     if (warnCount == 0) {
 
@@ -100,7 +102,7 @@ static inline void raiseCompilerWarning(int warningID, std::string message = "",
 
 }
 
-bool isValidHexadecimal(std::string& str) {
+bool is_valid_hexadecimal(std::string& str) {
 
     if (str.size() < 2 || str.substr(0, 2) != "0x") {
         return false;
@@ -117,10 +119,10 @@ bool isValidHexadecimal(std::string& str) {
     return true;
 }
 
-static inline std::string moveTo(int target, int curPos = *ptrPosPtr) {
+static inline std::string move_to(int target, int curPos = *ptrPosPtr) {
 
     if (ptrPosPtr == nullptr) {
-        raiseCompilerError(-1, "Used internal function 'moveTo' with ptrPosPtr = nullptr.", "This should never occur. (Hence the id -1)");
+        raise_compiler_error(-1, "Used internal function 'move_to' with ptrPosPtr = nullptr.", "This should never occur. (Hence the id -1)");
         return "[ERROR]";
 
     } else {
@@ -141,7 +143,7 @@ static inline std::string moveTo(int target, int curPos = *ptrPosPtr) {
     }
 }
 
-static std::string addNChars(int n, char c = '+') {
+static std::string add_n_chars(int n, char c = '+') {
     std::string ret = "";
 
     for (int i = 0; i < n; i++) {
@@ -163,12 +165,12 @@ static std::string multiply_string(std::string targetString, int n) {
 
 
 
-static void getCurTok() {
+static void get_cur_tok() {
     *curTokPtr = Tokens[tPtr];
 
 }
 
-static bool isReserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
+static bool is_reserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
 
     for (auto y: reserved_areas) {
 
@@ -185,7 +187,7 @@ static bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_v
     std::vector<int> addressRange = range(addresses[0], addresses[1]);
 
     for (auto a: addressRange) {
-        if (isReserved(a, reserved_segments_vector)) {
+        if (is_reserved(a, reserved_segments_vector)) {
             return true;
         }
     }
@@ -193,7 +195,7 @@ static bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_v
     return false;
 }
 
-static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
+static std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
 
     std::vector<std::array<int, 2>> candidates;
     std::vector<std::array<int, 3>> candidates_and_distances;
@@ -209,7 +211,7 @@ static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_
 
     if (candidates.empty()) {
 
-        raiseCompilerError(CompilerErrors::insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
+        raise_compiler_error(CompilerErrors::insufficientReservedMemoryError, "Insufficient memory reserved for this operation. Either use 'reserve' with a big enough range of addresses or avoid using the operation that caused this error.");
         return {-1,-1};
     }
     
@@ -234,13 +236,13 @@ static std::array<int, 2> findReserved(std::vector<std::array<int, 2>> reserved_
 
 
 
-static int hexToInt(std::string hexString) {
+static int hex_to_int(std::string hexString) {
 
     std::cout << hexString << std::endl;
 
-    if (!isValidHexadecimal(hexString)) {
+    if (!is_valid_hexadecimal(hexString)) {
 
-        raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
+        raise_compiler_error(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
         return -1;
     }
 
@@ -249,17 +251,17 @@ static int hexToInt(std::string hexString) {
             return std::stoi(hexString.substr(2), nullptr, 16);
 
         } catch (const std::invalid_argument& e) {
-            raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
+            raise_compiler_error(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
             return -1;
         }
 
     } else {
-        raiseCompilerError(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
+        raise_compiler_error(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
         return -1;
     }
 }
 
-std::string sliceString(const std::string& targetString, int idx1, int idx2) {
+static std::string slice_string(const std::string& targetString, int idx1, int idx2) {
 
     int length = targetString.length();
     // Handle negative indices
@@ -280,21 +282,22 @@ std::string sliceString(const std::string& targetString, int idx1, int idx2) {
     return targetString.substr(idx1, sliceLength);
 }
 
-static int addressStringToInteger(std::string addressString, std::string prefix = "?") {
+static int address_string_to_int(std::string addressString, std::string prefix = "?") {
 
     try
     {
-        return std::stoi(sliceString(addressString, prefix.length(), -1));
+        return std::stoi(slice_string(addressString, prefix.length(), -1));
     }
     catch(const std::exception& e)
     {
-        raiseCompilerError(CompilerErrors::invalidMemoryAddress, "Invalid memory address.", addressString);
+        raise_compiler_error(CompilerErrors::invalidMemoryAddress, "Invalid memory address.", addressString);
         return -1;
     }
     
 }
 
-int nearestPowerOfTwo(int n) {
+// unused
+static inline int nearest_power_of_two(int n) {
 
     if (n <= 0) {
         return 1; // Minimum power of two is 2^0 = 1
@@ -348,24 +351,24 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
         tempIntVect.clear();
         tempReservedArea = {};
 
-        getCurTok(); // use *curTokPtr to access the value
+        get_cur_tok(); // use *curTokPtr to access the value
 
         if (curTokPtr == nullptr) {
             break;
 
         } else if (curTok == RW.RW_memsize) {
             tPtr++;
-            getCurTok();
-            memsize = hexToInt(curTok);
+            get_cur_tok();
+            memsize = hex_to_int(curTok);
 
         } else if (curTok == RW.RW_load) {
             tPtr++;
-            getCurTok();
-            tempInt = addressStringToInteger(curTok);
+            get_cur_tok();
+            tempInt = address_string_to_int(curTok);
 
             if (reserved_overlap(reserved, {tempInt, tempInt})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'load " + curTok + " <- value' ..." 
                 );
@@ -373,41 +376,41 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             if (tempInt >= memsize || tempInt < 0) {
 
-                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
+                raise_compiler_error(CompilerErrors::invalidMemoryAddress,
                 "Couldn't load into address because it is bigger than specified memory size ('memsize' instruction) or it is less than zero.", 
                 "... 'load ?"+std::to_string(tempInt)+" <- value' ...");
             }
 
-            out += moveTo(tempInt, ptrPosition);
+            out += move_to(tempInt, ptrPosition);
             out += CS.setToZero;
 
             tPtr += 1;
             tPtr += 1;
 
-            getCurTok();
+            get_cur_tok();
 
             if (std::stoi(curTok) < 0 || std::stoi(curTok) > 255) {
 
-                raiseCompilerError(CompilerErrors::invalidValueToLoad,
+                raise_compiler_error(CompilerErrors::invalidValueToLoad,
                 "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
                 "... 'load ?address <- "+curTok+"' ...");
             }
 
-            out += addNChars(std::stoi(curTok), '+');
+            out += add_n_chars(std::stoi(curTok), '+');
 
         } else if (curTok == RW.RW_reserve) {
 
             tPtr++;
-            getCurTok();
-            tempReservedArea[0] = addressStringToInteger(curTok);
+            get_cur_tok();
+            tempReservedArea[0] = address_string_to_int(curTok);
 
             tPtr+=2;
-            getCurTok();
-            tempReservedArea[1] = addressStringToInteger(curTok);
+            get_cur_tok();
+            tempReservedArea[1] = address_string_to_int(curTok);
 
             if ((tempReservedArea[0] >= memsize) || (tempReservedArea[1] >= memsize) || (tempReservedArea[0] < 0) || (tempReservedArea[1] < 0)) {
 
-                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
+                raise_compiler_error(CompilerErrors::invalidMemoryAddress,
                 "Couldn't reserve memory area as it is bigger than specified memory size ('memsize' instruction) or it is less than zero.",
                 "... 'reserve ?"+std::to_string(tempReservedArea[0])+" ~ ?"+std::to_string(tempReservedArea[1])+"' ...");
             }
@@ -418,27 +421,27 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             tempStr = "";
             tempIntVect.clear();    // forgetting this line. caused me to spend 4 HOURS TRYING TO FIGURE OUT WHY IT WASN'T WORKING! I EVEN FUCKING REWROTE THIS ENTIRE PART AAAA
-            tempReservedArea = findReserved(reserved, ORM.add); // reserved area with required size
+            tempReservedArea = find_reserved(reserved, ORM.add); // reserved area with required size
 
             tPtr++;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // param 1 ... idx[0]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // param 1 ... idx[0]
             
             if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'add " + curTok + " <- address' ..." 
                 );
             }
 
             tPtr+=2;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // param 2 ... idx[1]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // param 2 ... idx[1]
 
             if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'add address <- " + curTok + "' ..." 
                 );
@@ -447,10 +450,10 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             // code gen
 
             // "sanitize" reserved area (just in case)
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -463,57 +466,57 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
 
             // .0 move param1 to reserved[0]
-            tempStr += moveTo(tempIntVect[0]);          // moveto param1
+            tempStr += move_to(tempIntVect[0]);          // move_to param1
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab param1.value
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto reserved[0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to reserved[0]
             tempStr += BFO.plus;                        //  +   place param1.value
-            tempStr += moveTo(tempIntVect[0]);          //  >>> moveto param1
+            tempStr += move_to(tempIntVect[0]);          //  >>> move_to param1
             tempStr += BFO.closeBr;                     // ]
 
             // .1 move param2 to reserved[1:2] (paste them twice there)
-            tempStr += moveTo(tempIntVect[1]);          // moveto param2
+            tempStr += move_to(tempIntVect[1]);          // move_to param2
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grav param2.value
-            tempStr += moveTo(tempReservedArea[0]+1);   //  <<< moveto reserved[1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  <<< move_to reserved[1]
             tempStr += BFO.plus;                        //  +   place param2.value
-            tempStr += moveTo(tempReservedArea[0]+2);   //  >   moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   //  >   move_to reserved[2]
             tempStr += BFO.plus;                        //  +   place param2.value
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto param2
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to param2
             tempStr += BFO.closeBr;                     // ]
 
             // .2 move reserved[2] to param2 (so param2 can keep its value)
-            tempStr += moveTo(tempReservedArea[0]+2);   // moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   // move_to reserved[2]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab reserved[2]
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto param2
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to param2
             tempStr += BFO.plus;                        //  +   place value
-            tempStr += moveTo(tempReservedArea[0]+2);   //  <<< moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   //  <<< move_to reserved[2]
             tempStr += BFO.closeBr;                     // ]
 
             // .3 add r[1] -> r[0]
-            tempStr += moveTo(tempReservedArea[0]+1);   // moveto reserved[1]
+            tempStr += move_to(tempReservedArea[0]+1);   // move_to reserved[1]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab [1]
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto [0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to [0]
             tempStr += BFO.plus;                        //  +   add [1] -> [0]
-            tempStr += moveTo(tempReservedArea[0]+1);   //  >>> moveto [1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  >>> move_to [1]
             tempStr += BFO.closeBr;                     // ]
 
             // .4 move reserved[0] to param1
-            tempStr += moveTo(tempReservedArea[0]);     // moveto reserved[0]
+            tempStr += move_to(tempReservedArea[0]);     // move_to reserved[0]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab [0]
-            tempStr += moveTo(tempIntVect[0]);          //  >>> moveto param1
+            tempStr += move_to(tempIntVect[0]);          //  >>> move_to param1
             tempStr += BFO.plus;                        //  +   place [0]
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto [0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to [0]
             tempStr += BFO.closeBr;                     // ]
 
             // .5 "sanitize" the reserved area again
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -523,27 +526,27 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             tempStr = "";
             tempIntVect.clear();    // forgetting this line. caused me to spend 4 HOURS TRYING TO FIGURE OUT WHY IT WASN'T WORKING! I EVEN FUCKING REWROTE THIS ENTIRE PART AAAA
-            tempReservedArea = findReserved(reserved, ORM.add); // reserved area with required size
+            tempReservedArea = find_reserved(reserved, ORM.add); // reserved area with required size
 
             tPtr++;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // param 1 ... idx[0]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // param 1 ... idx[0]
 
             if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'sub " + curTok + " <- address' ..." 
                 );
             }
 
             tPtr+=2;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // param 2 ... idx[1]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // param 2 ... idx[1]
 
             if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'add address <- " + curTok + "' ..." 
                 );
@@ -552,10 +555,10 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             // code gen
 
             // "sanitize" reserved area (just in case)
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -568,57 +571,57 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
 
             // .0 move param1 to reserved[0]
-            tempStr += moveTo(tempIntVect[0]);          // moveto param1
+            tempStr += move_to(tempIntVect[0]);          // move_to param1
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab param1.value
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto reserved[0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to reserved[0]
             tempStr += BFO.plus;                        //  +   place param1.value
-            tempStr += moveTo(tempIntVect[0]);          //  >>> moveto param1
+            tempStr += move_to(tempIntVect[0]);          //  >>> move_to param1
             tempStr += BFO.closeBr;                     // ]
 
             // .1 move param2 to reserved[1:2] (paste them twice there)
-            tempStr += moveTo(tempIntVect[1]);          // moveto param2
+            tempStr += move_to(tempIntVect[1]);          // move_to param2
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grav param2.value
-            tempStr += moveTo(tempReservedArea[0]+1);   //  <<< moveto reserved[1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  <<< move_to reserved[1]
             tempStr += BFO.plus;                        //  +   place param2.value
-            tempStr += moveTo(tempReservedArea[0]+2);   //  >   moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   //  >   move_to reserved[2]
             tempStr += BFO.plus;                        //  +   place param2.value
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto param2
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to param2
             tempStr += BFO.closeBr;                     // ]
 
             // .2 move reserved[2] to param2 (so param2 can keep its value)
-            tempStr += moveTo(tempReservedArea[0]+2);   // moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   // move_to reserved[2]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab reserved[2]
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto param2
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to param2
             tempStr += BFO.plus;                        //  +   place value
-            tempStr += moveTo(tempReservedArea[0]+2);   //  <<< moveto reserved[2]
+            tempStr += move_to(tempReservedArea[0]+2);   //  <<< move_to reserved[2]
             tempStr += BFO.closeBr;                     // ]
 
             // .3 add r[1] -> r[0]
-            tempStr += moveTo(tempReservedArea[0]+1);   // moveto reserved[1]
+            tempStr += move_to(tempReservedArea[0]+1);   // move_to reserved[1]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab [1]
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto [0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to [0]
             tempStr += BFO.minus;                       //  -   sub [1] -> [0]      only line different from "add"
-            tempStr += moveTo(tempReservedArea[0]+1);   //  >>> moveto [1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  >>> move_to [1]
             tempStr += BFO.closeBr;                     // ]
 
             // .4 move reserved[0] to param1
-            tempStr += moveTo(tempReservedArea[0]);     // moveto reserved[0]
+            tempStr += move_to(tempReservedArea[0]);     // move_to reserved[0]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab [0]
-            tempStr += moveTo(tempIntVect[0]);          //  >>> moveto param1
+            tempStr += move_to(tempIntVect[0]);          //  >>> move_to param1
             tempStr += BFO.plus;                        //  +   place [0]
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto [0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to [0]
             tempStr += BFO.closeBr;                     // ]
 
             // .5 "sanitize" the reserved area again
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -627,22 +630,22 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
         } else if (curTok == RW.RW_aout) {
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
             tempInt = std::stoi(curTok);    // amount of parameters
             tempIntVect.clear();
             tempStr = "";
 
             for (int i = 0; i < tempInt; i++) {
                 tPtr++;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok));
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok));
             }
 
             // brainfuck code generation
             // how?: iterate through tempIntVect, move to ?i:tempIntVect and use BFO.asciiOut
 
             for (int i = 0; i < tempIntVect.size(); i++) {
-                tempStr += moveTo(tempIntVect[i]);
+                tempStr += move_to(tempIntVect[i]);
                 tempStr += BFO.asciiOut;
             }
 
@@ -669,78 +672,78 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             // .0
             tPtr++;
-            getCurTok();
+            get_cur_tok();
             tempInt = std::stoi(curTok);    // now contains the amount of parameters
 
             // get the addresses into tempIntVect
             for (int i = 0; i < tempInt; i++) {
                 tPtr++;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok));
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok));
             }
 
             // .1
-            tempReservedArea = findReserved(reserved, ORM.vout);
+            tempReservedArea = find_reserved(reserved, ORM.vout);
 
             // sanitize
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
             // .2
             //get address of separating char
             tPtr+=2;
-            getCurTok();
+            get_cur_tok();
             bool doSeparate;
-            if (addressStringToInteger(curTok) < 0 || addressStringToInteger(curTok) > memsize) {
+            if (address_string_to_int(curTok) < 0 || address_string_to_int(curTok) > memsize) {
                 doSeparate = false;
             } else {
                 doSeparate = true;
             }
-            int separatorAddress = addressStringToInteger(curTok);
+            int separatorAddress = address_string_to_int(curTok);
 
             // do .2::[0:4]
             for (int i = 0; i < tempIntVect.size(); i++) {
                 int address = tempIntVect[i];                
                 //.2::0 copy value
-                tempStr += moveTo(address);                 // moveto address
+                tempStr += move_to(address);                 // move_to address
                 tempStr += BFO.openBr;                      // [
                 tempStr += BFO.minus;                       //  -   grab value
-                tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto r[0]
+                tempStr += move_to(tempReservedArea[0]);     //  <<< move_to r[0]
                 tempStr += BFO.plus;                        //  +   paste @r[0]
-                tempStr += moveTo(tempReservedArea[0]+1);   //  >   moveto r[1]
+                tempStr += move_to(tempReservedArea[0]+1);   //  >   move_to r[1]
                 tempStr += BFO.plus;                        //  +   paste @r[1]
-                tempStr += moveTo(address);                 //  >>> moveto address
+                tempStr += move_to(address);                 //  >>> move_to address
                 tempStr += BFO.closeBr;                     // ]
 
                 // .2::1 r[1] -> address
-                tempStr += moveTo(tempReservedArea[0]+1);   // moveto r[1]
+                tempStr += move_to(tempReservedArea[0]+1);   // move_to r[1]
                 tempStr += BFO.openBr;                      // [
                 tempStr += BFO.minus;                       //  -   grab value
-                tempStr += moveTo(address);                 //  >>> moveto address
+                tempStr += move_to(address);                 //  >>> move_to address
                 tempStr += BFO.plus;                        //  +   paste @address
-                tempStr += moveTo(tempReservedArea[0]+1);   //  <<< moveto r[1]
+                tempStr += move_to(tempReservedArea[0]+1);   //  <<< move_to r[1]
                 tempStr += BFO.closeBr;                     // ]
 
-                // .2::2 moveto r[0]
-                tempStr += moveTo(tempReservedArea[0]);
+                // .2::2 move_to r[0]
+                tempStr += move_to(tempReservedArea[0]);
 
                 // .2::3 do da magic
                 tempStr += CS.numOut;
 
                 // .2::4 sanitize and insert spaces between numbers
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.setToZero;
                 while (ptrPosition < tempReservedArea[1]) {
-                    tempStr += moveTo(ptrPosition +1);
+                    tempStr += move_to(ptrPosition +1);
                     tempStr += CS.setToZero;
                 }
 
                 if (doSeparate && (i+1 < tempIntVect.size())) {
-                    tempStr += moveTo(separatorAddress);
+                    tempStr += move_to(separatorAddress);
                     tempStr += BFO.asciiOut;
                 }
 
@@ -757,20 +760,20 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             std::string comparisonMode = "";
 
             tPtr++;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // get first input address into [0]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // get first input address into [0]
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
             comparisonMode = curTok;    // either =, <, or >
 
             tPtr++;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // get second input address into [1]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // get second input address into [1]
 
             tPtr+=2;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // get output address into [2]
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // get output address into [2]
 
             // memory layout for "compare": o1  o2  o3  i1  i2  r1
             //                              [0] [1] [2] [3] [4] [5]
@@ -781,7 +784,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              2. move r[4] to [1]
              3. copy [1] to r[4:5]
              4. move r[5] to [2]
-             5. moveto r[4] (this is where the pointer is after the comparison. I don't want to loose track of that thing)
+             5. move_to r[4] (this is where the pointer is after the comparison. I don't want to loose track of that thing)
              6. insert magic.
              7. move to the output address and set it to zero (to not interfere with 8.) 
              8. depending on "comparisonMode", move to either r[0], r[1] or r[2] and move that value to the output parameter.
@@ -789,115 +792,115 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              */
 
             // .0
-            tempReservedArea = findReserved(reserved, ORM.compare);
+            tempReservedArea = find_reserved(reserved, ORM.compare);
 
             // sanitize
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
             // .1 copy [0] to r[3:4]
-            tempStr += moveTo(tempIntVect[0]);              // moveto input 1
+            tempStr += move_to(tempIntVect[0]);              // move_to input 1
             tempStr += BFO.openBr;                          // [
             tempStr += BFO.minus;                           //  -   grab value
-            tempStr += moveTo(tempReservedArea[0]+3);       //  <<< moveto r[3]
+            tempStr += move_to(tempReservedArea[0]+3);       //  <<< move_to r[3]
             tempStr += BFO.plus;                            //  +   place @r[3]
-            tempStr += moveTo(tempReservedArea[0]+4);   	//  >   moveto r[4]
+            tempStr += move_to(tempReservedArea[0]+4);   	//  >   move_to r[4]
             tempStr += BFO.plus;                            //  +   place @r[4]
-            tempStr += moveTo(tempIntVect[0]);              //  >>> moveto input 1
+            tempStr += move_to(tempIntVect[0]);              //  >>> move_to input 1
             tempStr += BFO.closeBr;                         // ]
 
             // .2 move r[4] to [1]
-            tempStr += moveTo(tempReservedArea[0]+4);       // moveto r[4]
+            tempStr += move_to(tempReservedArea[0]+4);       // move_to r[4]
             tempStr += BFO.openBr;                          // [
             tempStr += BFO.minus;                           //  -   grab value
-            tempStr += moveTo(tempIntVect[0]);              //  >>> moveto input 1
+            tempStr += move_to(tempIntVect[0]);              //  >>> move_to input 1
             tempStr += BFO.plus;                            //  +   place @input 1
-            tempStr += moveTo(tempReservedArea[0]+4);       //  <<< moveto r[4]
+            tempStr += move_to(tempReservedArea[0]+4);       //  <<< move_to r[4]
             tempStr += BFO.closeBr;                         // ]
 
             // .3 copy [1] to r[4:5]
-            tempStr += moveTo(tempIntVect[1]);              // moveto input 2
+            tempStr += move_to(tempIntVect[1]);              // move_to input 2
             tempStr += BFO.openBr;                          // [
             tempStr += BFO.minus;                           //  -   grab value
-            tempStr += moveTo(tempReservedArea[0]+4);       //  <<< moveto r[4]
+            tempStr += move_to(tempReservedArea[0]+4);       //  <<< move_to r[4]
             tempStr += BFO.plus;                            //  +   place @r[4]
-            tempStr += moveTo(tempReservedArea[0]+5);   	//  >   moveto r[5]
+            tempStr += move_to(tempReservedArea[0]+5);   	//  >   move_to r[5]
             tempStr += BFO.plus;                            //  +   place @r[5]
-            tempStr += moveTo(tempIntVect[1]);              //  >>> moveto input 2
+            tempStr += move_to(tempIntVect[1]);              //  >>> move_to input 2
             tempStr += BFO.closeBr;                         // ]
 
             // .4 move r[5] to [2]
-            tempStr += moveTo(tempReservedArea[0]+5);       // moveto r[5]
+            tempStr += move_to(tempReservedArea[0]+5);       // move_to r[5]
             tempStr += BFO.openBr;                          // [
             tempStr += BFO.minus;                           //  -   grab value
-            tempStr += moveTo(tempIntVect[1]);              //  >>> moveto input 1
+            tempStr += move_to(tempIntVect[1]);              //  >>> move_to input 1
             tempStr += BFO.plus;                            //  +   place @input 1
-            tempStr += moveTo(tempReservedArea[0]+5);       //  <<< moveto r[5]
+            tempStr += move_to(tempReservedArea[0]+5);       //  <<< move_to r[5]
             tempStr += BFO.closeBr;  
 
             // .5
-            tempStr += moveTo(tempReservedArea[0]);         // this is where the pointer needs to be
+            tempStr += move_to(tempReservedArea[0]);         // this is where the pointer needs to be
 
             // .6 magic
             tempStr += CS.comparison_magic;                 // dangerous magic.
-            moveTo(tempReservedArea[0]+4);
+            move_to(tempReservedArea[0]+4);
 
 
             // .7 move to the output address and set it to zero (to not interfere with 8.) 
-            tempStr += moveTo(tempIntVect[2]);
+            tempStr += move_to(tempIntVect[2]);
             tempStr += CS.setToZero;
 
             // .8  depending on "comparisonMode", move to either r[0], r[1] or r[2] and move that value to the output parameter.
             if (comparisonMode == "=") {
 
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
 
             } else if (comparisonMode == ">") {
 
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
 
             } else if (comparisonMode == "<") {
 
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
 
             } else {
                 
-                raiseCompilerError(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
+                raise_compiler_error(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
             }
 
             tempStr += BFO.openBr;                          // [
             tempStr += BFO.minus;                           //  -
-            tempStr += moveTo(tempIntVect[2]);              //  >>>
+            tempStr += move_to(tempIntVect[2]);              //  >>>
             tempStr += BFO.plus;                            //  +
 
             if (comparisonMode == "=") {                    //  <<<
 
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
 
             } else if (comparisonMode == ">") {
 
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
 
             } else if (comparisonMode == "<") {
 
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
 
             } else {
 
-                raiseCompilerError(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
+                raise_compiler_error(CompilerErrors::invalidComparisonOperator, "Invalid comparison operator.", "... 'compare ?address " + comparisonMode + " ?address -> ?address' ...");
             }
 
             tempStr += BFO.closeBr;
 
             // .9
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -929,24 +932,24 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempReservedArea = {};
 
             tPtr++;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // get target
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // get target
 
             if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'copy " + curTok + " <- address' ..." 
                 );
             }
 
             tPtr+=2;
-            getCurTok();
-            tempIntVect.push_back(addressStringToInteger(curTok)); // get source
+            get_cur_tok();
+            tempIntVect.push_back(address_string_to_int(curTok)); // get source
 
             if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'copy address <- " + curTok + "' ..." 
                 );
@@ -966,57 +969,57 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              */
 
             // .0
-            tempReservedArea = findReserved(reserved, ORM.copy);
+            tempReservedArea = find_reserved(reserved, ORM.copy);
 
             // sanitize
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
             // .1
-            tempStr += moveTo(tempIntVect[1]);          // moveto source
+            tempStr += move_to(tempIntVect[1]);          // move_to source
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab value
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto r[0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to r[0]
             tempStr += BFO.plus;                        //  +   paste @r[0]
-            tempStr += moveTo(tempReservedArea[0]+1);   //  >   moveto r[1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  >   move_to r[1]
             tempStr += BFO.plus;                        //  +   paste @r[1]
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto source
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to source
             tempStr += BFO.closeBr;                     // ]
 
             // .2
 
-            tempStr += moveTo(tempIntVect[1]);
+            tempStr += move_to(tempIntVect[1]);
             tempStr += CS.setToZero;
 
-            tempStr += moveTo(tempReservedArea[0]);     // moveto r[0]
+            tempStr += move_to(tempReservedArea[0]);     // move_to r[0]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab value
-            tempStr += moveTo(tempIntVect[1]);          //  >>> moveto source
+            tempStr += move_to(tempIntVect[1]);          //  >>> move_to source
             tempStr += BFO.plus;                        //  +   paste value
-            tempStr += moveTo(tempReservedArea[0]);     //  <<< moveto r[0]
+            tempStr += move_to(tempReservedArea[0]);     //  <<< move_to r[0]
             tempStr += BFO.closeBr;                     // ]
 
             // .3
-            tempStr += moveTo(tempIntVect[0]);
+            tempStr += move_to(tempIntVect[0]);
             tempStr += CS.setToZero;
 
-            tempStr += moveTo(tempReservedArea[0]+1);   // moveto r[1]
+            tempStr += move_to(tempReservedArea[0]+1);   // move_to r[1]
             tempStr += BFO.openBr;                      // [
             tempStr += BFO.minus;                       //  -   grab value
-            tempStr += moveTo(tempIntVect[0]);          //  >>> moveto target
+            tempStr += move_to(tempIntVect[0]);          //  >>> move_to target
             tempStr += BFO.plus;                        //  +   paste value
-            tempStr += moveTo(tempReservedArea[0]+1);   //  <<< moveto r[1]
+            tempStr += move_to(tempReservedArea[0]+1);   //  <<< move_to r[1]
             tempStr += BFO.closeBr;                     // ]
 
             // .4
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -1038,10 +1041,10 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
              */
 
             tPtr++;
-            getCurTok();
-            loopingAddressesStack.push(addressStringToInteger(curTok)); // .0
+            get_cur_tok();
+            loopingAddressesStack.push(address_string_to_int(curTok)); // .0
 
-            tempStr += moveTo(loopingAddressesStack.top());             // .1
+            tempStr += move_to(loopingAddressesStack.top());             // .1
             tempStr += BFO.openBr;                                      // .2
 
             out += tempStr;
@@ -1055,21 +1058,21 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             steps (numbering continued from WNZ)
 
             3. pop loopingAddressesStack into tempInt (raise an error if the stack is empty)
-            4. moveto tempInt
+            4. move_to tempInt
             5. ]
 
              */
 
             // .3
             if (loopingAddressesStack.empty()) {
-                raiseCompilerError(CompilerErrors::unmatchedEndLoop, "Unmatched 'endLoop'. This means there are more 'endLoop' statements than 'whileNotZero' statements.");
+                raise_compiler_error(CompilerErrors::unmatchedEndLoop, "Unmatched 'endLoop'. This means there are more 'endLoop' statements than 'whileNotZero' statements.");
             } else {
                 tempInt = loopingAddressesStack.top();
                 loopingAddressesStack.pop();    
             }
 
             // .4
-            tempStr += moveTo(tempInt);
+            tempStr += move_to(tempInt);
             // .5
             tempStr += BFO.closeBr;
 
@@ -1081,20 +1084,20 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempIntVect.clear();
             
             tPtr++;
-            getCurTok();
-            tempReservedArea[0] = addressStringToInteger(curTok);
+            get_cur_tok();
+            tempReservedArea[0] = address_string_to_int(curTok);
 
             tPtr+=2;
-            getCurTok();
-            tempReservedArea[1] = addressStringToInteger(curTok);
+            get_cur_tok();
+            tempReservedArea[1] = address_string_to_int(curTok);
 
             // this is just my "sanitize reserved area" script.
             // that's why I use tempReservedArea even though this 
             // sanitizes something else than a reserved area.
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
             tempStr += CS.setToZero;
             while (ptrPosition < tempReservedArea[1]) {
-                tempStr += moveTo(ptrPosition +1);
+                tempStr += move_to(ptrPosition +1);
                 tempStr += CS.setToZero;
             }
 
@@ -1106,19 +1109,19 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = 0;
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            tempInt = addressStringToInteger(curTok);
+            tempInt = address_string_to_int(curTok);
 
             if (reserved_overlap(reserved, {tempInt, tempInt})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'increment " + curTok + "' ..." 
                 );
             }
 
-            tempStr += moveTo(tempInt);
+            tempStr += move_to(tempInt);
             tempStr += BFO.plus;
 
             out += tempStr;
@@ -1129,19 +1132,19 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = 0;
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            tempInt = addressStringToInteger(curTok);
+            tempInt = address_string_to_int(curTok);
 
             if (reserved_overlap(reserved, {tempInt, tempInt})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'decrement " + curTok + "' ..." 
                 );
             }
 
-            tempStr += moveTo(tempInt);
+            tempStr += move_to(tempInt);
             tempStr += BFO.minus;
 
             out += tempStr;
@@ -1152,19 +1155,19 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = 0;
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            tempInt = addressStringToInteger(curTok);
+            tempInt = address_string_to_int(curTok);
 
             if (reserved_overlap(reserved, {tempInt, tempInt})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'read " + curTok + "' ..." 
                 );
             }
 
-            tempStr += moveTo(tempInt);
+            tempStr += move_to(tempInt);
             tempStr += BFO.input;
 
             out += tempStr;
@@ -1177,18 +1180,18 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = 0;
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            tempReservedArea = findReserved(reserved, ORM.cout);
+            tempReservedArea = find_reserved(reserved, ORM.cout);
 
-            tempStr += moveTo(tempReservedArea[0]);
+            tempStr += move_to(tempReservedArea[0]);
 
-            // addNChars(amount, '+');
+            // add_n_chars(amount, '+');
 
             for (char c: curTok) {
                 tempInt = c;
                 tempStr += CS.setToZero;
-                tempStr += addNChars(tempInt, '+');
+                tempStr += add_n_chars(tempInt, '+');
                 tempStr += BFO.asciiOut;
             }
 
@@ -1202,27 +1205,27 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempInt = 0; 
             
             tPtr += 2;
-            getCurTok();
+            get_cur_tok();
             logicMode = curTok;
 
             tPtr--;
-            getCurTok();
+            get_cur_tok();
 
-            tempIntVect.push_back(addressStringToInteger(curTok));  // no matter the mode, [0] always contains the first parameter.
+            tempIntVect.push_back(address_string_to_int(curTok));  // no matter the mode, [0] always contains the first parameter.
 
             if (logicMode == RW.RW_LM_and) {
-                tempReservedArea = findReserved(reserved, ORM.logic_and);
+                tempReservedArea = find_reserved(reserved, ORM.logic_and);
 
                 tPtr += 2;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok)); // [1] is i2
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok)); // [1] is i2
                 tPtr += 2;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok)); // [2] is output
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok)); // [2] is output
 
                 if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
                     
-                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                     "Using a reserved address is not recommended!",              
                     "... 'logic address and address -> " + curTok + "' ..." 
                     );
@@ -1247,142 +1250,142 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
                 
                 // .0   // same as "or" //
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr +=BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.closeBr;
 
                 // .1   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .2   // same as "or" //
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr +=BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.closeBr;
 
                 // .3   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.closeBr;
 
                 // .4   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += CS.collapse_int;
 
                 // .5   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.collapse_int;
 
                 // .6   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .7   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.closeBr;
 
                 // .8   // same as "or" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .9 "Ich wollte meinen Stab zerbrechen..."
                 // .9:1 move r[0] to r[3]
                 // .9:2 load 2 into r[4]
-                // .9:3 moveTo r[0] and set ptrPosition to r[4]
+                // .9:3 move_to r[0] and set ptrPosition to r[4]
                 // .9:4 magic
 
                 // .9:1
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]+3);
+                tempStr += move_to(tempReservedArea[0]+3);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.closeBr;
 
                 // .9:2
-                tempStr += moveTo(tempReservedArea[0]+4);
+                tempStr += move_to(tempReservedArea[0]+4);
                 tempStr += CS.setToZero;
                 tempStr += BFO.plus;
                 tempStr += BFO.plus;
 
                 // .9:3
-                tempStr += moveTo(tempReservedArea[0]);
-                moveTo(tempReservedArea[0]+4);
+                tempStr += move_to(tempReservedArea[0]);
+                move_to(tempReservedArea[0]+4);
 
                 // .9:4
                 tempStr += CS.comparison_magic;
 
                 // .10
-                tempStr += moveTo(tempIntVect[2]);
+                tempStr += move_to(tempIntVect[2]);
                 tempStr += CS.setToZero;
 
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[2]);
+                tempStr += move_to(tempIntVect[2]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.closeBr;
 
                 // .11
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.setToZero;
                 while (ptrPosition < tempReservedArea[1]) {
-                    tempStr += moveTo(ptrPosition +1);
+                    tempStr += move_to(ptrPosition +1);
                     tempStr += CS.setToZero;
                 }
 
             } else if (logicMode == RW.RW_LM_or) {
 
-                tempReservedArea = findReserved(reserved, ORM.logic_and);
+                tempReservedArea = find_reserved(reserved, ORM.logic_and);
 
                 tPtr += 2;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok)); // [1] is i2
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok)); // [1] is i2
                 tPtr += 2;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok)); // [2] is output
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok)); // [2] is output
 
                 if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
                     
-                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                     "Using a reserved address is not recommended!",              
                     "... 'logic address or address -> " + curTok + "' ..." 
                     );
@@ -1406,152 +1409,152 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
                  */
 
                 // .0   // same as "and" //
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr +=BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.closeBr;
 
                 // .1   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .2   // same as "and" //
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr +=BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.closeBr;
 
                 // .3   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.closeBr;
 
                 // .4   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += CS.collapse_int;
 
                 // .5   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.collapse_int;
 
                 // .6   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .7   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+2);
+                tempStr += move_to(tempReservedArea[0]+2);
                 tempStr += BFO.closeBr;
 
                 // .8   // same as "and" //
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // .9
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.collapse_int;
 
                 // .10
-                tempStr += moveTo(tempIntVect[2]);
+                tempStr += move_to(tempIntVect[2]);
                 tempStr += CS.setToZero;
 
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[2]);
+                tempStr += move_to(tempIntVect[2]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
             } else if (logicMode == RW.RW_LM_not) {
 
-                tempReservedArea = findReserved(reserved, ORM.logic_not);
+                tempReservedArea = find_reserved(reserved, ORM.logic_not);
                 // not mode
 
                 tPtr+=3;
-                getCurTok();
-                tempIntVect.push_back(addressStringToInteger(curTok));  // [1] = target
+                get_cur_tok();
+                tempIntVect.push_back(address_string_to_int(curTok));  // [1] = target
 
                 if (reserved_overlap(reserved, {tempIntVect.back(), tempIntVect.back()})) {
                     
-                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                     "Using a reserved address is not recommended!",              
                     "... 'logic address not -> " + curTok + "' ..." 
                     );
                 }
 
                 // copy source to r[0:1]
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.closeBr;
 
                 // move r[1] back to source
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[0]);
+                tempStr += move_to(tempIntVect[0]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
 
                 // do the not-magic
-                tempStr += moveTo(tempReservedArea[0]);
+                tempStr += move_to(tempReservedArea[0]);
                 tempStr += CS.logic_not;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += CS.setToZero;
 
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.openBr;
                 tempStr += BFO.minus;
-                tempStr += moveTo(tempIntVect[1]);
+                tempStr += move_to(tempIntVect[1]);
                 tempStr += BFO.plus;
-                tempStr += moveTo(tempReservedArea[0]+1);
+                tempStr += move_to(tempReservedArea[0]+1);
                 tempStr += BFO.closeBr;
                 
 
 
             } else {
 
-                raiseCompilerError(CompilerErrors::invalidLogicOperator,
+                raise_compiler_error(CompilerErrors::invalidLogicOperator,
                 "Invalid operator for 'logic' statement.",
                 "... 'logic ?address " + logicMode + "' ...");
             }
@@ -1561,11 +1564,11 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
         } else if (curTok == RW.RW_alias) {
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
             tempStr = curTok;
 
             tPtr+=2;
-            getCurTok();
+            get_cur_tok();
 
             for (int i = 0; i < Tokens.size(); i++) {
                 if (Tokens[i] == curTok) {
@@ -1580,52 +1583,52 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
             tempIntVect.clear();
 
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            tempInt = addressStringToInteger(curTok);
-            tempStr += moveTo(tempInt);
+            tempInt = address_string_to_int(curTok);
+            tempStr += move_to(tempInt);
 
             if (tempInt < 0 || tempInt >= memsize) {
-                raiseCompilerError(CompilerErrors::invalidMemoryAddress,
+                raise_compiler_error(CompilerErrors::invalidMemoryAddress,
                 "Couldn't load into address because it is bigger than specified memory size ('memsize' instruction) or it is less than zero.", 
                 "... 'loads ?"+std::to_string(tempInt)+"...");
             }
 
             if (reserved_overlap(reserved, {tempInt, tempInt})) {
                 
-                raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                 "Using a reserved address is not recommended!",              
                 "... 'loads " + curTok + " ~ address : values' ..."
                 );
             }
 
             tPtr+=2;
-            getCurTok();
+            get_cur_tok();
             tempInt = std::stoi(curTok);
             tPtr++;
 
             for (int i = 0; i < tempInt; i++) {
 
                 tPtr++;
-                getCurTok();
+                get_cur_tok();
                 tempIntVect.push_back(std::stoi(curTok));
             }
 
             for (int y: tempIntVect) {
 
                 tempStr += CS.setToZero;
-                tempStr += addNChars(y, '+');
-                tempStr += moveTo(ptrPosition+1);
+                tempStr += add_n_chars(y, '+');
+                tempStr += move_to(ptrPosition+1);
 
                 if ((y > 255) || (y < 0)) {
-                    raiseCompilerError(CompilerErrors::invalidValueToLoad,
+                    raise_compiler_error(CompilerErrors::invalidValueToLoad,
                     "Couldn't load value because it is either less than zero or greater than 255. Only unsigned 8-bit integers (0-255) may be loaded.",
                     "... 'loads "+curTok+"' ...");
                 }
 
                 if (reserved_overlap(reserved, {y, y})) {
                     
-                    raiseCompilerWarning(CompilerWarnings::accessingReservedAddress,
+                    raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
                     "Using a reserved address is not recommended!",              
                     "... 'loads address ~ address : values' ...\nA loads statement is trying to write to address ?" + std::to_string(y)
                     );
@@ -1639,11 +1642,11 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
 
             out += " ";
             tPtr++;
-            getCurTok();
+            get_cur_tok();
 
-            if (stringContains(curTok, BFO.allOps)) {
+            if (string_contains(curTok, BFO.allOps)) {
 
-                raiseCompilerWarning(CompilerWarnings::reservedInlineCharacter, 
+                raise_compiler_warning(CompilerWarnings::reservedInlineCharacter, 
                 "Your inline statement could lead to errors because it contains one of the following characters: " + BFO.allOps,
                 "... 'inline " + curTok + "' ..."
                 );
@@ -1661,7 +1664,7 @@ std::string compile(std::vector<std::string> Tokens_string_vector) {
     }
 
     if (!loopingAddressesStack.empty()) {
-        raiseCompilerError(CompilerErrors::unmatchedEndLoop, "Unmatched 'whileNotZero' statement. This means that there are more 'whileNotZero' statements than 'endLoop' statements.");
+        raise_compiler_error(CompilerErrors::unmatchedEndLoop, "Unmatched 'whileNotZero' statement. This means that there are more 'whileNotZero' statements than 'endLoop' statements.");
     }
     
 

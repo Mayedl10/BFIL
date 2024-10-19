@@ -45,5 +45,5 @@ struct Token {
 };
 
 std::vector<int> range (int a, int b);
-bool stringContains (std::string master, std::string chars);
+bool string_contains (std::string master, std::string chars);
 #endif

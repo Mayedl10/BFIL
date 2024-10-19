@@ -8,7 +8,7 @@
 #include "lexer.hpp"
 #include "optimise.hpp"
 
-void press_enter_to_continue() {
+static void press_enter_to_continue() {
     std::cout << "Press enter to continue";
     std::cin.get();
     std::cout << std::endl;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     try
     {
-        fileContent = getFileContentAsString(inputFile);
+        fileContent = get_file_content_as_string(inputFile);
     }
     catch(const std::exception& e)
     {
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     std::cout << "compiledCode: " << compiledCode << std::endl; 
 
     if (compiledCode != "\n") {
-        writeToFile(outputFile, "", compiledCode);
+        write_to_file(outputFile, "", compiledCode);
         
     } else {
         std::cout << "------------------------------------------------------------------\n|Code will not be saved to file due to errors during compilation.|\n------------------------------------------------------------------" << std::endl;

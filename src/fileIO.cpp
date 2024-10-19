@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-std::string getFileContentAsString(const std::string& filename) {
+std::string get_file_content_as_string(const std::string& filename) {
 
     std::ifstream file(filename);
 
@@ -17,7 +17,7 @@ std::string getFileContentAsString(const std::string& filename) {
     return buffer.str();
 }
 
-int writeToFile(std::string path, std::string fileExtension, std::string content) {
+int write_to_file(std::string path, std::string fileExtension, std::string content) {
 
     std::string filePath = path + fileExtension;
     std::ofstream file(filePath);

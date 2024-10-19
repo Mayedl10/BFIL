@@ -7,7 +7,7 @@
 
 static std::vector<Token> retV;
 
-static std::string replaceSubChar(std::string master, char target, char newChar) {
+static std::string replace_sub_char(std::string master, char target, char newChar) {
 
     std::string ret = master;
 
@@ -22,7 +22,7 @@ static std::string replaceSubChar(std::string master, char target, char newChar)
     return ret;
 }
 
-std::string cleanSpaces(const std::string &input) {
+std::string clean_spaces(const std::string &input) {
 
     std::string result;
     bool previousSpace = false;  // Keeps track of the previous character being a space
@@ -47,7 +47,8 @@ std::string cleanSpaces(const std::string &input) {
     return result;
 }
 
-static void addToken(std::string value, std::string type) {
+// unused
+static void add_token(std::string value, std::string type) {
 
     Token tempT;
     tempT.value = value;
@@ -59,7 +60,7 @@ std::vector<std::string> tokenize(std::string code) {
 
     ReservedWords RW;
 
-    code = " " + cleanSpaces(replaceSubChar(replaceSubChar(replaceSubChar(code, '\r', ' '), '\t', ' '), '\n', ' ')) + " ";
+    code = " " + clean_spaces(replace_sub_char(replace_sub_char(replace_sub_char(code, '\r', ' '), '\t', ' '), '\n', ' ')) + " ";
 
     std::vector<std::string> retV;
     std::string tempString;
