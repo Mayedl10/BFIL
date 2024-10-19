@@ -10,6 +10,9 @@
 #include <utility>
 #include <cctype>
 
+// uncomment for debug mode
+// #define COMPILER_DEBUG
+
 struct ReservedWords {
 
     std::string RW_add          = "add";            // add

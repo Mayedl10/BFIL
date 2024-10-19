@@ -85,7 +85,9 @@ int main(int argc, char* argv[]) {
 
     }
 
+#ifdef COMPILER_DEBUG
     std::cout << "compiledCode: " << compiledCode << std::endl; 
+#endif
 
     if (compiledCode != "\n") {
         write_to_file(outputFile, "", compiledCode);
