@@ -238,8 +238,6 @@ static std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved
 
 static int hex_to_int(std::string hexString) {
 
-    std::cout << hexString << std::endl;
-
     if (!is_valid_hexadecimal(hexString)) {
 
         raise_compiler_error(CompilerErrors::invalidHexadecimalValue, "Invalid hexadecimal value.");
