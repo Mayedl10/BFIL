@@ -1,16 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_load (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    int &tempInt,
-    int &memsize
-    ) {
+void Compiler::instr_load () {
 
     tPtr++;
     get_cur_tok();
@@ -31,7 +22,7 @@ void instr_load (
         "... 'load ?"+std::to_string(tempInt)+" <- value' ...");
     }
 
-    out += move_to(tempInt, ptrPosition);
+    out += move_to(tempInt);
     out += CS.setToZero;
 
     tPtr += 1;

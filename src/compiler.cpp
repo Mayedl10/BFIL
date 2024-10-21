@@ -1,6 +1,6 @@
 #include "common.hpp"
 #include "compiler.hpp"
-#include "instr.hpp"
+
 
 /*
 memory layout abbreviations: (all of them may be combined)
@@ -39,29 +39,6 @@ pointer will always end up on i2 at the end
 
 */
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////// GLOBAL VARIABLES //////////////////////////////////////////
-// declared using extern in compiler.hpp
-// written down here bc that somehow fixes a bunch of linker errors
-int* ptrPosPtr;
-std::string* curTokPtr;
-std::vector<std::string> Tokens;
-int tPtr;
-std::vector<std::array<int, 2>> reserved;
-int errorCount;
-int warnCount;
-std::string curTok;
-bool displayWarnings; 
-
-ReservedWords RW;
-CodeSnippets CS;
-BrainFuckOperations BFO;
-OperationRequiredMemory ORM;
-////////////////////////////////////////// GLOBAL VARIABLES //////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 #ifdef COMPILER_DEBUG
 // unused
 int debugCTR = 0;
@@ -71,14 +48,40 @@ void debug_print() {
 }
 #endif
 
-static void define_globals(bool displayWarnings) {
-    errorCount = 0;
-    ptrPosPtr = nullptr;
-    warnCount = 0;
-    displayWarnings = displayWarnings;
+void Compiler::define_globals(bool displayWarnings) {
+    this->errorCount = 0;
+    this->ptrPosPtr = nullptr;
+    this->warnCount = 0;
+    this->displayWarnings = displayWarnings;
+
+    this->instructionMap = {
+
+        {RW.RW_add, &Compiler::instr_add},
+        {RW.RW_alias, &Compiler::instr_alias},
+        {RW.RW_aout, &Compiler::instr_aout},
+        {RW.RW_compare, &Compiler::instr_compare},
+        {RW.RW_copy, &Compiler::instr_copy},
+        {RW.RW_cout, &Compiler::instr_cout},
+        {RW.RW_decrement, &Compiler::instr_decrement},
+        {RW.RW_empty, &Compiler::instr_empty},
+        {RW.RW_endLoop, &Compiler::instr_endLoop},
+        {RW.RW_increment, &Compiler::instr_increment},
+        {RW.RW_inline, &Compiler::instr_inline},
+        {RW.RW_load, &Compiler::instr_load},
+        {RW.RW_loads, &Compiler::instr_loads},
+        {RW.RW_logic, &Compiler::instr_logic},
+        {RW.RW_memsize, &Compiler::instr_memsize},
+        {RW.RW_read, &Compiler::instr_read},
+        {RW.RW_reserve, &Compiler::instr_reserve},
+        {RW.RW_sub, &Compiler::instr_sub},
+        {RW.RW_vout, &Compiler::instr_vout},
+        {RW.RW_wnz, &Compiler::instr_wnz}
+
+    };
+
 }
 
-void raise_compiler_error(int errorID, std::string message, std::string errorContext) {
+void Compiler::raise_compiler_error(int errorID, std::string message, std::string errorContext) {
     if (errorCount == 0) {
         std::cout << "[Compiler error] ";
         std::cout << "Error: " << message << std::endl;
@@ -99,7 +102,7 @@ void raise_compiler_error(int errorID, std::string message, std::string errorCon
     errorCount++;
 }
 
-void raise_compiler_warning(int warningID, std::string message, std::string warningContext) {
+void Compiler::raise_compiler_warning(int warningID, std::string message, std::string warningContext) {
 
     if (displayWarnings) {
 
@@ -127,7 +130,7 @@ void raise_compiler_warning(int warningID, std::string message, std::string warn
 
 }
 
-bool is_valid_hexadecimal(std::string& str) {
+bool Compiler::is_valid_hexadecimal(std::string& str) {
 
     if (str.size() < 2 || str.substr(0, 2) != "0x") {
         return false;
@@ -144,7 +147,7 @@ bool is_valid_hexadecimal(std::string& str) {
     return true;
 }
 
-std::string add_n_chars(int n, char c) {
+std::string Compiler::add_n_chars(int n, char c) {
     std::string ret = "";
 
     for (int i = 0; i < n; i++) {
@@ -154,7 +157,7 @@ std::string add_n_chars(int n, char c) {
     return ret;
 }
 
-std::string multiply_string(std::string targetString, int n) {
+std::string Compiler::multiply_string(std::string targetString, int n) {
     std::string ret = "";
 
     for (int i = 0; i < n; i++) {
@@ -166,12 +169,12 @@ std::string multiply_string(std::string targetString, int n) {
 
 
 
-void get_cur_tok() {
+void Compiler::get_cur_tok() {
     *curTokPtr = Tokens[tPtr];
 
 }
 
-bool is_reserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
+bool Compiler::is_reserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
 
     for (auto y: reserved_areas) {
 
@@ -184,7 +187,7 @@ bool is_reserved(int address, std::vector<std::array<int, 2>> reserved_areas) {
     return false;
 }
 
-bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_vector, std::array<int, 2> addresses) {   
+bool Compiler::reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_vector, std::array<int, 2> addresses) {   
     std::vector<int> addressRange = range(addresses[0], addresses[1]);
 
     for (auto a: addressRange) {
@@ -196,7 +199,7 @@ bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_vector, 
     return false;
 }
 
-std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
+std::array<int, 2> Compiler::find_reserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize) {
 
     std::vector<std::array<int, 2>> candidates;
     std::vector<std::array<int, 3>> candidates_and_distances;
@@ -237,7 +240,7 @@ std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved_segmen
 
 
 
-int hex_to_int(std::string hexString) {
+int Compiler::hex_to_int(std::string hexString) {
 
     if (!is_valid_hexadecimal(hexString)) {
 
@@ -260,7 +263,7 @@ int hex_to_int(std::string hexString) {
     }
 }
 
-std::string slice_string(const std::string& targetString, int idx1, int idx2) {
+std::string Compiler::slice_string(const std::string& targetString, int idx1, int idx2) {
 
     int length = targetString.length();
     // Handle negative indices
@@ -281,7 +284,7 @@ std::string slice_string(const std::string& targetString, int idx1, int idx2) {
     return targetString.substr(idx1, sliceLength);
 }
 
-int address_string_to_int(std::string addressString, std::string prefix) {
+int Compiler::address_string_to_int(std::string addressString, std::string prefix) {
 
     try
     {
@@ -295,33 +298,15 @@ int address_string_to_int(std::string addressString, std::string prefix) {
     
 }
 
-std::string compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
+std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
     define_globals(displayWarnings);
 
-    std::string out = "";
-
+    out = "";
     Tokens = Tokens_string_vector;  // just doing this so I can use a global variable instead of a local parameter
-
     tPtr = 0;                       // token "pointer"
     int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
-
     curTokPtr = &curTok;
-
-    int memsize = -1;
-    bool initialized = false;
-
-    int tempInt;
-    std::string tempStr;
-    std::vector<int> tempIntVect;
-    std::array<int, 2> tempReservedArea;
-
-    std::stack<int> loopingAddressesStack;
-    std::stack<int> branchingAddressesStack;
-    std::string logicMode;
-    
-
-    int ptrPosition = 0;
     ptrPosPtr = &ptrPosition;
 
     while (tPtr < tPtrLimit) {
@@ -335,85 +320,8 @@ std::string compile(std::vector<std::string> Tokens_string_vector, bool displayW
         if (curTokPtr == nullptr) {
             break;
 
-        } else if (curTok == RW.RW_memsize) {
-            instr_memsize(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, memsize);
-
-        } else if (curTok == RW.RW_load) {
-
-            instr_load(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt, memsize);
-
-        } else if (curTok == RW.RW_reserve) {
-
-            instr_reserve(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, memsize);
-
-        } else if (curTok == RW.RW_add) {
-
-            instr_add(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition);
-
-        } else if (curTok == RW.RW_sub) {
-
-            instr_sub(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition);
-
-        } else if (curTok == RW.RW_aout) {
-
-            instr_aout(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_vout) {
-
-            instr_vout(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt, memsize);
-
-        } else if (curTok == RW.RW_compare) {
-
-            instr_compare(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-        
-        } else if (curTok == RW.RW_copy) {
-
-            instr_copy(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_wnz) {
-
-            instr_wnz(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, loopingAddressesStack);
-
-        } else if (curTok == RW.RW_endLoop) {
-
-            instr_endLoop(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt, loopingAddressesStack);
-
-        } else if (curTok == RW.RW_empty) {
-
-            instr_empty(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition);
-
-        } else if (curTok == RW.RW_increment) {
-
-            instr_increment(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_decrement) {
-
-            instr_decrement(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_read) {
-
-            instr_read(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_cout){
-
-            instr_cout(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt);
-
-        } else if (curTok == RW.RW_logic) {
-
-            instr_logic(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt, logicMode);
-
-        } else if (curTok == RW.RW_alias) {
-
-            instr_alias(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition);
-
-        } else if (curTok == RW.RW_loads) {
-
-            instr_loads(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition, tempInt, memsize);
-        
-        } else if (curTok == RW.RW_inline) {
-
-            instr_inline(out, tempStr, tempIntVect, tempReservedArea, tPtr, ptrPosition);
-
+        } else {
+            (this->*instructionMap[curTok])();
         }
 
         tPtr++;

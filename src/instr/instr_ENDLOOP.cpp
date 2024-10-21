@@ -1,16 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_endLoop (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    int &tempInt,
-    std::stack<int> &loopingAddressesStack
-    ) {
+void Compiler::instr_endLoop () {
 
     tempStr = "";
     tempInt = 0;

@@ -1,15 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_increment (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    int &tempInt
-    ) {
+void Compiler::instr_increment () {
 
     tempStr = "";
     tempInt = 0;

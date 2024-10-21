@@ -22,6 +22,8 @@ int main(int argc, char* argv[]) {
     int optimisationLevel = 0;
     bool displayWarnings = true;
 
+    Compiler comp;
+
     if (argc <= 1) {
 
         std::cout << "Please provide valid arguments." << std::endl;
@@ -85,7 +87,7 @@ int main(int argc, char* argv[]) {
     }
     
     auto tokens = tokenize(fileContent);
-    std::string compiledCode = compile(tokens, displayWarnings);
+    std::string compiledCode = comp.compile(tokens, displayWarnings);
 
     if (optimisationLevel) {
         compiledCode = optimise_code(compiledCode, optimisationLevel);

@@ -1,16 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_loads (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    int &tempInt,
-    int &memsize
-    ) {
+void Compiler::instr_loads () {
 
     tempStr = "";
     tempInt = 0;

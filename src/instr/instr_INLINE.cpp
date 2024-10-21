@@ -1,14 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_inline (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition
-    ) {
+void Compiler::instr_inline () {
 
     out += " ";
     tPtr++;

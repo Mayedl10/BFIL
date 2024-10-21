@@ -1,15 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_wnz (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    std::stack<int> &loopingAddressesStack
-    ) {
+void Compiler::instr_wnz () {
 
     tempStr = "";
 

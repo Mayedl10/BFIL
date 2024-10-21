@@ -9,6 +9,7 @@
 #include <vector>
 #include <utility>
 #include <cctype>
+#include <unordered_map>
 
 // uncomment for debug mode
 // #define COMPILER_DEBUG

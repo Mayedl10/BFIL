@@ -1,14 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void instr_sub (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition
-    ) {
+void Compiler::instr_sub () {
 
     tempStr = "";
     tempIntVect.clear();    // forgetting this line. caused me to spend 4 HOURS TRYING TO FIGURE OUT WHY IT WASN'T WORKING! I EVEN FUCKING REWROTE THIS ENTIRE PART AAAA

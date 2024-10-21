@@ -1,16 +1,7 @@
 #include "compiler.hpp"
 #include "common.hpp"
-#include "instr.hpp"
 
-void instr_memsize (
-    std::string &out,
-    std::string &tempStr,
-    std::vector<int> &tempIntVect,
-    std::array<int, 2> &tempReservedArea,
-    int &tPtr,
-    int &ptrPosition,
-    int &memsize
-    ) {
+void Compiler::instr_memsize () {
 
     tPtr++;
     get_cur_tok();
