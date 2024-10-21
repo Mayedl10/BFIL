@@ -3,7 +3,6 @@
 
 #include "common.hpp"
 
-// DONE
 void instr_add (
     std::string &out,
     std::string &tempStr,
@@ -13,7 +12,6 @@ void instr_add (
     int &ptrPosition
 );
 
-// DONE
 void instr_alias (
     std::string &out,
     std::string &tempStr,
@@ -23,7 +21,6 @@ void instr_alias (
     int &ptrPosition
 );
 
-// DONE
 void instr_aout (
     std::string &out,
     std::string &tempStr,
@@ -34,7 +31,6 @@ void instr_aout (
     int &tempInt
 );
 
-// DONE
 void instr_compare (
     std::string &out,
     std::string &tempStr,
@@ -45,7 +41,6 @@ void instr_compare (
     int &tempInt
 );
 
-// DONE
 void instr_copy (
     std::string &out,
     std::string &tempStr,
@@ -56,7 +51,6 @@ void instr_copy (
     int &tempInt
 );
 
-// DONE
 void instr_cout (
     std::string &out,
     std::string &tempStr,
@@ -67,7 +61,6 @@ void instr_cout (
     int &tempInt
 );
 
-// DONE
 void instr_decrement (
     std::string &out,
     std::string &tempStr,
@@ -78,7 +71,6 @@ void instr_decrement (
     int &tempInt
 );
 
-// DONE
 void instr_empty (
     std::string &out,
     std::string &tempStr,
@@ -88,7 +80,6 @@ void instr_empty (
     int &ptrPosition
 );
 
-// DONE
 void instr_endLoop (
     std::string &out,
     std::string &tempStr,
@@ -100,7 +91,6 @@ void instr_endLoop (
     std::stack<int> &loopingAddressesStack
 );
 
-// DONE
 void instr_increment (
     std::string &out,
     std::string &tempStr,
@@ -111,7 +101,6 @@ void instr_increment (
     int &tempInt
 );
 
-// DONE
 void instr_inline (
     std::string &out,
     std::string &tempStr,
@@ -121,7 +110,6 @@ void instr_inline (
     int &ptrPosition
 );
 
-// DONE
 void instr_load (
     std::string &out,
     std::string &tempStr,
@@ -133,7 +121,6 @@ void instr_load (
     int &memsize
 );
 
-// DONE
 void instr_loads (
     std::string &out,
     std::string &tempStr,
@@ -145,7 +132,6 @@ void instr_loads (
     int &memsize
 );
 
-// DONE
 void instr_logic (
     std::string &out,
     std::string &tempStr,
@@ -157,7 +143,6 @@ void instr_logic (
     std::string &logicMode
 );
 
-// DONE
 void instr_memsize (
     std::string &out,
     std::string &tempStr,
@@ -168,7 +153,6 @@ void instr_memsize (
     int &memsize
 );
 
-// DONE
 void instr_read (
     std::string &out,
     std::string &tempStr,
@@ -179,7 +163,6 @@ void instr_read (
     int &tempInt
 );
 
-// DONE
 void instr_reserve (
     std::string &out,
     std::string &tempStr,
@@ -190,7 +173,6 @@ void instr_reserve (
     int &memsize
 );
 
-// DONE
 void instr_sub (
     std::string &out,
     std::string &tempStr,
@@ -200,7 +182,6 @@ void instr_sub (
     int &ptrPosition
 );
 
-// DONE
 void instr_vout (
     std::string &out,
     std::string &tempStr,
