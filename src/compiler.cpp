@@ -153,6 +153,7 @@ bool Compiler::is_valid_decimal(std::string str) {
             return false;
         }
     }
+    return true;
 }
 
 std::string Compiler::add_n_chars(int n, char c) {
@@ -338,7 +339,42 @@ int Compiler::generate_variable_address() {
     return -1;
 }
 
+std::string Compiler::construct_address_str(int addr) {
+    return RW.RW_prefix_ADDR + std::to_string(addr);
+}
 
+void Compiler::scan_code_var(int &tIdx) {
+
+    // check if next token has already been added as a variable, error if yes
+
+    for (std::pair<const std::string, int> y: variableAddressLookup) {
+        if (y.first == Tokens[tIdx+1]) {
+            raise_compiler_error(CompilerErrors::multipleVariableDefinitions, "Variable " + Tokens[tIdx+1] + " has already been defined.", "... var " + Tokens[tIdx+1] + " ...");
+        }
+    }
+
+    // check if next token is a keyword, error if yes
+    if (vector_contains_string(RW.RW_ALL, Tokens[tIdx+1])) {
+        raise_compiler_error(CompilerErrors::invalidVariableName, "Cannot create a variable with the name \"" + Tokens[tIdx+1] + "\".", "... var " + Tokens[tIdx+1] + " ...");
+    }
+
+    // generate_variable_address
+    int variableAddress = generate_variable_address();
+
+    std::pair<std::string, int> initialValueEntry = {Tokens[tIdx+1], 0};
+
+    // is t+1 "="? keep default value at 0 if no, otherwise: check if t+2 is a number, set default value to t+2 if true, error if not
+    if ((Tokens[tIdx+1] == RW.RW_operator_EQ) && (is_valid_decimal(Tokens[tIdx+2]))) {
+        initialValueEntry.second = std::stoi(Tokens[tIdx+2]);
+    }
+
+    // add variable to var index
+    variableAddressLookup.insert({Tokens[tIdx+1], variableAddress});
+
+    // in scan_code, for every following token: if token != keyword, but is variable, replace with address string
+    
+
+}
 
 void Compiler::scan_code() {
 /*
@@ -363,6 +399,7 @@ this function scans for various things and manages variable creation
     */
 
     std::string t;
+    int memsizeCount = 0;
 
     for (int i = 0; i < (int)(Tokens.size()); i++) {
         t = Tokens[i];      
@@ -371,13 +408,15 @@ this function scans for various things and manages variable creation
             continue;
         }
 
+        // determine initial memsize and raise warning if memsize changes
+        if (t == RW.RW_memsize) {
+            memsize = hex_to_int(Tokens[i+1]);
+            memsizeCount++;
+        }
+
         if (t == RW.RW_var) {
-            // check if next token has already been added as a variable, error if yes
-            // check if next token is a keyword, error if yes
-            // generate_variable_address
-            // is t+1 "="? set default value to 0 if no, otherwise: check if t+2 is a number, set default value to t+2 if true, error if not
-            // add variable to var index
-            // IN THIS FUNCTION if token != keyword, if variable, replace with address string
+            scan_code_var(i);
+
         }
 
 
@@ -409,11 +448,28 @@ this function scans for various things and manages variable creation
         // check if variables are used
         } else if (t == RW.RW_var) {
             variablesUsed = true;
-        }
+        
+
+        // if token != keyword, but is variable, replace with address string
+        } else if (
+            // only true if t has been declared as a variable
+            (variableAddressLookup.find(t) != variableAddressLookup.end()) &&
+            // check if t is not a keyword
+            (!vector_contains_string(RW.RW_ALL, t))
+        ) {
+
+            Tokens[i] = construct_address_str(variableAddressLookup[t]);
+
+        }      
+
+    }
+
+    if (memsizeCount > 1) {
+        raise_compiler_warning(CompilerWarnings::multipleMemsizeDeclarations, "Multiple \"memsize\" statements used. This will likely lead to errors.", "");
     }
 }
 
-static bool vector_contains_string(std::vector<std::string> vec, std::string str) {
+bool Compiler::vector_contains_string(std::vector<std::string> vec, std::string str) {
     for (auto y: vec) {
         if (y == str) {
             return true;

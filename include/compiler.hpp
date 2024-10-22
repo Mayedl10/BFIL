@@ -70,7 +70,9 @@ enum CompilerErrors : int {
     unmatchedEndLoop,
     unmatchedWNZ,
     invalidLogicOperator,
-    outOfMemory
+    outOfMemory,
+    multipleVariableDefinitions,
+    invalidVariableName
 
 };
 
@@ -78,7 +80,8 @@ enum CompilerWarnings : int {
 
     accessingReservedAddress,
     reservedInlineCharacter,
-    variablesAndDirectAddressing
+    variablesAndDirectAddressing,
+    multipleMemsizeDeclarations
 
 };
 
@@ -136,9 +139,12 @@ public:
     int hex_to_int(std::string hexString);
     std::string slice_string(const std::string& targetString, int idx1, int idx2);
     int address_string_to_int(std::string addressString, std::string prefix = "?");
+    void scan_code_var(int &tIdx);
     void scan_code();
+    std::string construct_address_str(int addr);
     inline int nearest_power_of_two(int n);
     int generate_variable_address();
+    bool vector_contains_string(std::vector<std::string> vec, std::string str);
 
     void instr_add ();
     void instr_alias ();
@@ -158,7 +164,7 @@ public:
     void instr_read ();
     void instr_reserve ();
     void instr_sub ();
-    void instr_var(); // doesn't actually do anything. mainly handled by scan_code.
+    void instr_var(); // only sets default values
     void instr_vout ();
     void instr_wnz ();
 

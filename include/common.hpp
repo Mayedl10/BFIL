@@ -40,6 +40,8 @@ struct ReservedWords {
 
     const std::string RW_operator_EQ  = "=";
 
+    const std::string RW_prefix_ADDR  = "?";
+
     const std::string RW_LM_or        = "or";             // parameter for "compare"
     const std::string RW_LM_and       = "and";            // ^
     const std::string RW_LM_not       = "not";            // ^

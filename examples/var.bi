@@ -3,6 +3,6 @@ reserve ?16 ~ ?32
 
 var x
 var y = 5
-var x = 6
+load x <- 6
 
 add x <- y
