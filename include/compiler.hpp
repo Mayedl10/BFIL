@@ -145,6 +145,7 @@ public:
     inline int nearest_power_of_two(int n);
     int generate_variable_address();
     bool vector_contains_string(std::vector<std::string> vec, std::string str);
+    bool var_exists(std::string var);
 
     void instr_add ();
     void instr_alias ();
