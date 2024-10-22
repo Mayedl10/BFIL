@@ -347,7 +347,7 @@ bool Compiler::var_exists(std::string var) {
     return !(variableAddressLookup.find(var) == variableAddressLookup.end());
 }
 
-void Compiler::scan_code_var(int &tIdx) {
+void Compiler::scan_code_var(int &tIdx, std::vector<int> &varDeclatationIdxs) {
 
     // check if next token has already been added as a variable, error if yes
 
@@ -374,6 +374,7 @@ void Compiler::scan_code_var(int &tIdx) {
 
     // add variable to var index
     variableAddressLookup.insert({Tokens[tIdx+1], variableAddress});
+    varDeclatationIdxs.push_back(tIdx);
 
     // in scan_code, for every following token: if token != keyword, but is variable, replace with address string
     
@@ -404,6 +405,7 @@ this function scans for various things and manages variable creation
 
     std::string t;
     int memsizeCount = 0;
+    std::vector<int> varDeclatationIdxs = {};
 
     for (int i = 0; i < static_cast<int>(Tokens.size()); i++) {
         t = Tokens[i];
@@ -415,7 +417,7 @@ this function scans for various things and manages variable creation
         }
 
         if (t == RW.RW_var) {
-            scan_code_var(i);
+            scan_code_var(i, varDeclatationIdxs);
 
         }
 
@@ -425,11 +427,15 @@ this function scans for various things and manages variable creation
             // only true if t has been declared as a variable
             (var_exists(t)) &&
             // check if t is not a keyword
-            (!vector_contains_string(RW.RW_ALL, t))
+            (!vector_contains_string(RW.RW_ALL, t)) &&
+            // check if varDeclatationIdxs contains t-1 or t-3
+            !(
+                vector_contains_int(varDeclatationIdxs, i-1) ||
+                vector_contains_int(varDeclatationIdxs, i-3)
+            )
+            
         ) {
-            std::cout << Tokens[i] << "\treplaced with\t";
             Tokens[i] = construct_address_str(variableAddressLookup[t]);
-            std::cout << Tokens[i] << std::endl;
         } 
 
         // check for manual addressing
@@ -478,6 +484,15 @@ bool Compiler::vector_contains_string(std::vector<std::string> vec, std::string 
     return false;
 }
 
+bool Compiler::vector_contains_int(std::vector<int> vec, int i) {
+    for (auto y: vec) {
+        if (y == i) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
     define_globals(displayWarnings);
@@ -491,10 +506,6 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
 
 
     scan_code();
-
-
-
-
 
     if (manualAddressingUsed && variablesUsed) {
         raise_compiler_warning(CompilerWarnings::variablesAndDirectAddressing, "Using direct addresses AND variables might lead to unwanted behaviour!");
