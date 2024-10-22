@@ -45,6 +45,18 @@ Set a range of cells to 0: `empty ?0 ~ ?10`*
 
 To copy a value, use `copy ?target ~ ?source`*
 
+Variables:
+- declare with default value as 0: `var [name]`
+- declare with specified default value: `var [name] = [value]` (note that `=` can not be replaced by another character)
+- Variables are effectively replaced with static memory addresses at compile time, meaning it is not recommended to use both manual addressing and variables! (compiler warnings can be disabled with `-c`)
+```
+var x
+var y = 5
+
+load x <- 10
+add x <- y
+```
+
 Compare*:
 ```
 compare ?0 = ?1 ~ ?2
