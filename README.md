@@ -15,7 +15,7 @@ Use the compiler with the following options:
 
 `-c`          `concise` - disable warnings
 
-Example usage: `BFIL -f compare.bfil -p "path" -P "path" -o "compare"`
+Example usage: `BFIL -i /path/to/compare.bi -o /path/to/compare.bf`
 <br/><br/><br/>-----<br/><br/><br/>
 Numbers that have a ? in front of them are addresses.
 
