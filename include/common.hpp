@@ -34,12 +34,42 @@ struct ReservedWords {
     const std::string RW_read         = "read";           // ,
     const std::string RW_reserve      = "reserve";        // reserves areas of code
     const std::string RW_sub          = "sub";            // subtract
+    const std::string RW_var          = "var";            // variable
     const std::string RW_vout         = "vout";           // value out
     const std::string RW_wnz          = "whileNotZero";   // while (cur != 0) {
+
+    const std::string RW_operator_EQ  = "=";
+
+    const std::string RW_prefix_ADDR  = "?";
 
     const std::string RW_LM_or        = "or";             // parameter for "compare"
     const std::string RW_LM_and       = "and";            // ^
     const std::string RW_LM_not       = "not";            // ^
+
+    const std::vector<std::string> RW_ALL = {
+        RW_add,
+        RW_alias,
+        RW_aout,
+        RW_compare,
+        RW_copy,
+        RW_cout,
+        RW_decrement,
+        RW_empty,
+        RW_endLoop,
+        RW_increment,
+        RW_inline,
+        RW_load,
+        RW_loads,
+        RW_logic,
+        RW_memsize,
+        RW_read,
+        RW_reserve,
+        RW_sub,
+        RW_var,
+        RW_vout,
+        RW_wnz
+    };
+
 };
 
 struct Token {

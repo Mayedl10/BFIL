@@ -69,14 +69,19 @@ enum CompilerErrors : int {
     invalidComparisonOperator,
     unmatchedEndLoop,
     unmatchedWNZ,
-    invalidLogicOperator
+    invalidLogicOperator,
+    outOfMemory,
+    multipleVariableDefinitions,
+    invalidVariableName
 
 };
 
 enum CompilerWarnings : int {
 
     accessingReservedAddress,
-    reservedInlineCharacter
+    reservedInlineCharacter,
+    variablesAndDirectAddressing,
+    multipleMemsizeDeclarations
 
 };
 
@@ -92,6 +97,9 @@ class Compiler {
     std::string curTok;
     bool displayWarnings;
 
+    bool variablesUsed;
+    bool manualAddressingUsed;
+
     std::string out = "";
     int memsize = -1;
     bool initialized = false;
@@ -103,6 +111,8 @@ class Compiler {
     std::stack<int> branchingAddressesStack;
     std::string logicMode;
     int ptrPosition = 0;
+    std::vector<std::pair<std::string, int>> variableInitialValues;
+    std::unordered_map<std::string, int> variableAddressLookup;
 
     ReservedWords RW;
     CodeSnippets CS;
@@ -117,17 +127,24 @@ public:
     void raise_compiler_error(int errorID, std::string message = "", std::string errorContext = "");
     void raise_compiler_warning(int warningID, std::string message = "", std::string warningContext = "");
     bool is_valid_hexadecimal(std::string& str);
+    bool is_valid_decimal(std::string str);
     inline std::string move_to(int target);
     std::string add_n_chars(int n, char c = '+');
     std::string multiply_string(std::string targetString, int n);
     void get_cur_tok();
     bool is_reserved(int address, std::vector<std::array<int, 2>> reserved_areas);
+    bool is_variable(int address);
     bool reserved_overlap(std::vector<std::array<int, 2>> reserved_segments_vector, std::array<int, 2> addresses);
     std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize);
     int hex_to_int(std::string hexString);
     std::string slice_string(const std::string& targetString, int idx1, int idx2);
     int address_string_to_int(std::string addressString, std::string prefix = "?");
+    void scan_code_var(int &tIdx);
+    void scan_code();
+    std::string construct_address_str(int addr);
     inline int nearest_power_of_two(int n);
+    int generate_variable_address();
+    bool vector_contains_string(std::vector<std::string> vec, std::string str);
 
     void instr_add ();
     void instr_alias ();
@@ -147,6 +164,7 @@ public:
     void instr_read ();
     void instr_reserve ();
     void instr_sub ();
+    void instr_var(); // only sets default values
     void instr_vout ();
     void instr_wnz ();
 

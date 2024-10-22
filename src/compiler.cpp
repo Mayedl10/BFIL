@@ -147,6 +147,15 @@ bool Compiler::is_valid_hexadecimal(std::string& str) {
     return true;
 }
 
+bool Compiler::is_valid_decimal(std::string str) {
+    for (char c: str) {
+        if (!((c < '0') || (c > '9'))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string Compiler::add_n_chars(int n, char c) {
     std::string ret = "";
 
@@ -184,6 +193,16 @@ bool Compiler::is_reserved(int address, std::vector<std::array<int, 2>> reserved
         }
     }
 
+    return false;
+}
+
+bool Compiler::is_variable(int address) {
+
+    for (std::pair<const std::string, int>& y: variableAddressLookup) {
+        if (y.second == address) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -298,6 +317,167 @@ int Compiler::address_string_to_int(std::string addressString, std::string prefi
     
 }
 
+int Compiler::generate_variable_address() {
+
+    /*
+    
+    an address is valid if:
+        - not reserved
+        - not already used by a variable    
+    */
+
+    for (int i = 0; i < memsize; i++) {
+        if ((!is_reserved(i, reserved)) && (!is_variable(i))) {
+            return i;
+        }
+    }
+
+    // if this point is reached, somehow every address is already in use or smth --> error
+
+    raise_compiler_error(CompilerErrors::outOfMemory, "Cannot declare variable; out of memory.", "");
+    
+    return -1;
+}
+
+std::string Compiler::construct_address_str(int addr) {
+    return RW.RW_prefix_ADDR + std::to_string(addr);
+}
+
+void Compiler::scan_code_var(int &tIdx) {
+
+    // check if next token has already been added as a variable, error if yes
+
+    for (std::pair<const std::string, int> y: variableAddressLookup) {
+        if (y.first == Tokens[tIdx+1]) {
+            raise_compiler_error(CompilerErrors::multipleVariableDefinitions, "Variable " + Tokens[tIdx+1] + " has already been defined.", "... var " + Tokens[tIdx+1] + " ...");
+        }
+    }
+
+    // check if next token is a keyword, error if yes
+    if (vector_contains_string(RW.RW_ALL, Tokens[tIdx+1])) {
+        raise_compiler_error(CompilerErrors::invalidVariableName, "Cannot create a variable with the name \"" + Tokens[tIdx+1] + "\".", "... var " + Tokens[tIdx+1] + " ...");
+    }
+
+    // generate_variable_address
+    int variableAddress = generate_variable_address();
+
+    std::pair<std::string, int> initialValueEntry = {Tokens[tIdx+1], 0};
+
+    // is t+1 "="? keep default value at 0 if no, otherwise: check if t+2 is a number, set default value to t+2 if true, error if not
+    if ((Tokens[tIdx+1] == RW.RW_operator_EQ) && (is_valid_decimal(Tokens[tIdx+2]))) {
+        initialValueEntry.second = std::stoi(Tokens[tIdx+2]);
+    }
+
+    // add variable to var index
+    variableAddressLookup.insert({Tokens[tIdx+1], variableAddress});
+
+    // in scan_code, for every following token: if token != keyword, but is variable, replace with address string
+    
+
+}
+
+void Compiler::scan_code() {
+/*
+this function scans for various things and manages variable creation
+
+*/
+
+
+    // check if token like ?*
+    // check if token is RW_var
+    /*
+    variables
+    - scan entire code
+    - on var: new variable entry
+        - if name in keywords: error
+    - on var name: replace with address
+
+    syntax:
+    var [name]
+    var [name] = [value]
+    ... [name] ...
+    */
+
+    std::string t;
+    int memsizeCount = 0;
+
+    for (int i = 0; i < (int)(Tokens.size()); i++) {
+        t = Tokens[i];      
+
+        if (t.size() <= 1) {
+            continue;
+        }
+
+        // determine initial memsize and raise warning if memsize changes
+        if (t == RW.RW_memsize) {
+            memsize = hex_to_int(Tokens[i+1]);
+            memsizeCount++;
+        }
+
+        if (t == RW.RW_var) {
+            scan_code_var(i);
+
+        }
+
+
+        // check for manual addressing
+        if ((t[0] == '?') && (is_valid_decimal(t.substr(1)))) {
+
+            // check if "reserve" has been used
+
+            // conditions:
+            //                          0       1  2 3
+            // i-1 != "reserve"         reserve t  ~ ?n
+            // i-3 != "reserve"         reserve ?n ~ t
+
+            // if i >= 1, check for i-1
+            // if i >= 3, check for i-3
+
+            if (i >= 1) {
+                if (Tokens[i-1] == RW.RW_reserve) {
+                    continue;
+                }
+
+            } else if (i >= 3) {
+                if (Tokens[i-3] == RW.RW_reserve) {}
+                    continue;
+            }
+            
+            manualAddressingUsed = true;
+        
+        // check if variables are used
+        } else if (t == RW.RW_var) {
+            variablesUsed = true;
+        
+
+        // if token != keyword, but is variable, replace with address string
+        } else if (
+            // only true if t has been declared as a variable
+            (variableAddressLookup.find(t) != variableAddressLookup.end()) &&
+            // check if t is not a keyword
+            (!vector_contains_string(RW.RW_ALL, t))
+        ) {
+
+            Tokens[i] = construct_address_str(variableAddressLookup[t]);
+
+        }      
+
+    }
+
+    if (memsizeCount > 1) {
+        raise_compiler_warning(CompilerWarnings::multipleMemsizeDeclarations, "Multiple \"memsize\" statements used. This will likely lead to errors.", "");
+    }
+}
+
+bool Compiler::vector_contains_string(std::vector<std::string> vec, std::string str) {
+    for (auto y: vec) {
+        if (y == str) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
     define_globals(displayWarnings);
@@ -308,6 +488,12 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
     curTokPtr = &curTok;
     ptrPosPtr = &ptrPosition;
+
+    scan_code();
+
+    if (manualAddressingUsed && variablesUsed) {
+        raise_compiler_warning(CompilerWarnings::variablesAndDirectAddressing, "Using direct addresses AND variables might lead to unwanted behaviour!");
+    }
 
     while (tPtr < tPtrLimit) {
         tempInt = 0;
@@ -320,8 +506,11 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
         if (curTokPtr == nullptr) {
             break;
 
-        } else {
+        } else if (vector_contains_string(RW.RW_ALL, curTok)) {
             (this->*instructionMap[curTok])();
+
+        } else {
+
         }
 
         tPtr++;
