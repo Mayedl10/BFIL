@@ -38,7 +38,6 @@ if i2 < i2: o3->1
 pointer will always end up on i2 at the end
 
 */
-
 #ifdef COMPILER_DEBUG
 // unused
 int debugCTR = 0;
@@ -74,6 +73,7 @@ void Compiler::define_globals(bool displayWarnings) {
         {RW.RW_read, &Compiler::instr_read},
         {RW.RW_reserve, &Compiler::instr_reserve},
         {RW.RW_sub, &Compiler::instr_sub},
+        {RW.RW_var, &Compiler::instr_var},
         {RW.RW_vout, &Compiler::instr_vout},
         {RW.RW_wnz, &Compiler::instr_wnz}
 
@@ -343,7 +343,11 @@ std::string Compiler::construct_address_str(int addr) {
     return RW.RW_prefix_ADDR + std::to_string(addr);
 }
 
-void Compiler::scan_code_var(int &tIdx) {
+bool Compiler::var_exists(std::string var) {
+    return !(variableAddressLookup.find(var) == variableAddressLookup.end());
+}
+
+void Compiler::scan_code_var(int &tIdx, std::vector<int> &varDeclatationIdxs) {
 
     // check if next token has already been added as a variable, error if yes
 
@@ -370,6 +374,7 @@ void Compiler::scan_code_var(int &tIdx) {
 
     // add variable to var index
     variableAddressLookup.insert({Tokens[tIdx+1], variableAddress});
+    varDeclatationIdxs.push_back(tIdx);
 
     // in scan_code, for every following token: if token != keyword, but is variable, replace with address string
     
@@ -400,13 +405,10 @@ this function scans for various things and manages variable creation
 
     std::string t;
     int memsizeCount = 0;
+    std::vector<int> varDeclatationIdxs = {};
 
-    for (int i = 0; i < (int)(Tokens.size()); i++) {
-        t = Tokens[i];      
-
-        if (t.size() <= 1) {
-            continue;
-        }
+    for (int i = 0; i < static_cast<int>(Tokens.size()); i++) {
+        t = Tokens[i];
 
         // determine initial memsize and raise warning if memsize changes
         if (t == RW.RW_memsize) {
@@ -415,10 +417,26 @@ this function scans for various things and manages variable creation
         }
 
         if (t == RW.RW_var) {
-            scan_code_var(i);
+            scan_code_var(i, varDeclatationIdxs);
 
         }
 
+
+        // if token != keyword, but is variable, replace with address string
+        if (
+            // only true if t has been declared as a variable
+            (var_exists(t)) &&
+            // check if t is not a keyword
+            (!vector_contains_string(RW.RW_ALL, t)) &&
+            // check if varDeclatationIdxs contains t-1 or t-3
+            !(
+                vector_contains_int(varDeclatationIdxs, i-1) ||
+                vector_contains_int(varDeclatationIdxs, i-3)
+            )
+            
+        ) {
+            Tokens[i] = construct_address_str(variableAddressLookup[t]);
+        } 
 
         // check for manual addressing
         if ((t[0] == '?') && (is_valid_decimal(t.substr(1)))) {
@@ -448,19 +466,7 @@ this function scans for various things and manages variable creation
         // check if variables are used
         } else if (t == RW.RW_var) {
             variablesUsed = true;
-        
-
-        // if token != keyword, but is variable, replace with address string
-        } else if (
-            // only true if t has been declared as a variable
-            (variableAddressLookup.find(t) != variableAddressLookup.end()) &&
-            // check if t is not a keyword
-            (!vector_contains_string(RW.RW_ALL, t))
-        ) {
-
-            Tokens[i] = construct_address_str(variableAddressLookup[t]);
-
-        }      
+        }
 
     }
 
@@ -478,6 +484,15 @@ bool Compiler::vector_contains_string(std::vector<std::string> vec, std::string 
     return false;
 }
 
+bool Compiler::vector_contains_int(std::vector<int> vec, int i) {
+    for (auto y: vec) {
+        if (y == i) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
     define_globals(displayWarnings);
@@ -488,6 +503,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
     curTokPtr = &curTok;
     ptrPosPtr = &ptrPosition;
+
 
     scan_code();
 
