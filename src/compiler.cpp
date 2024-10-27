@@ -514,6 +514,11 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
         raise_compiler_warning(CompilerWarnings::variablesAndDirectAddressing, "Using direct addresses AND variables might lead to unwanted behaviour!");
     }
 
+    for (auto y: Tokens) {
+        std::cout << y << " ";
+    }
+    exit(0);
+
     while (tPtr < tPtrLimit) {
         tempInt = 0;
         tempStr = "";
@@ -521,7 +526,6 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
         tempReservedArea = {};
 
         get_cur_tok(); // use *curTokPtr to access the value
-        std::cout << curTok << std::endl;
 
         if (curTokPtr == nullptr) {
             break;
