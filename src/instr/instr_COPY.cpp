@@ -1,18 +1,16 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
-void Compiler::instr_copy () {
+void Compiler::copy_values(int source, int target, bool allowReserved) {
 
     tempStr = "";
     tempInt = 0;
     tempIntVect.clear();
     tempReservedArea = {};
 
-    tPtr++;
-    get_cur_tok();
-    tempIntVect.push_back(address_string_to_int(curTok)); // get target
+    tempIntVect.push_back(target); // get target
 
-    if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
+    if ((reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) && !allowReserved) {
         
         raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
         "Using a reserved address is not recommended!",              
@@ -20,11 +18,10 @@ void Compiler::instr_copy () {
         );
     }
 
-    tPtr+=2;
-    get_cur_tok();
-    tempIntVect.push_back(address_string_to_int(curTok)); // get source
 
-    if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
+    tempIntVect.push_back(source); // get source
+
+    if ((reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) && !allowReserved) {
         
         raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
         "Using a reserved address is not recommended!",              
@@ -101,5 +98,40 @@ void Compiler::instr_copy () {
     }
 
     out += tempStr;
+
+}
+
+void Compiler::instr_copy () {
+
+    tempStr = "";
+    tempInt = 0;
+    tempIntVect.clear();
+    tempReservedArea = {};
+
+    tPtr++;
+    get_cur_tok();
+    tempIntVect.push_back(address_string_to_int(curTok)); // get target
+
+    if (reserved_overlap(reserved, {tempIntVect[0], tempIntVect[0]})) {
+        
+        raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
+        "Using a reserved address is not recommended!",              
+        "... 'copy " + curTok + " <- address' ..." 
+        );
+    }
+
+    tPtr+=2;
+    get_cur_tok();
+    tempIntVect.push_back(address_string_to_int(curTok)); // get source
+
+    if (reserved_overlap(reserved, {tempIntVect[1], tempIntVect[1]})) {
+        
+        raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
+        "Using a reserved address is not recommended!",              
+        "... 'copy address <- " + curTok + "' ..." 
+        );
+    }
+
+    this->copy_values(tempIntVect[1], tempIntVect[0], false);
 
 }

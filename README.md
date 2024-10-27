@@ -19,6 +19,8 @@ Example usage: `BFIL -i /path/to/compare.bi -o /path/to/compare.bf`
 <br/><br/><br/>-----<br/><br/><br/>
 Numbers that have a ? in front of them are addresses.
 
+**WARNING:** `?0` is not automatically reserved, but the compiler sometimes uses it like a reserved address, meaning using it is NOT recommended!
+
 To specify the memory size your brainfuck interpreter has, use `memsize`. This is the only thing in this language that uses hexadecimal values. `memsize 0x8000`
 
 In order for your code to work, you need to reserve memory using `reserve`: `reserve ?16 ~ ?32`*

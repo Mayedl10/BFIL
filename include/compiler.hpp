@@ -147,6 +147,7 @@ public:
     bool vector_contains_string(std::vector<std::string> vec, std::string str);
     bool vector_contains_int(std::vector<int> vec, int i);
     bool var_exists(std::string var);
+    void copy_values(int source, int target, bool allowReserved); // in instr_COPY.cpp
 
     void instr_add();
     void instr_alias();

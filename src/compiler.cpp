@@ -55,27 +55,29 @@ void Compiler::define_globals(bool displayWarnings) {
 
     this->instructionMap = {
 
-        {RW.RW_add, &Compiler::instr_add},
-        {RW.RW_alias, &Compiler::instr_alias},
-        {RW.RW_aout, &Compiler::instr_aout},
-        {RW.RW_compare, &Compiler::instr_compare},
-        {RW.RW_copy, &Compiler::instr_copy},
-        {RW.RW_cout, &Compiler::instr_cout},
-        {RW.RW_decrement, &Compiler::instr_decrement},
-        {RW.RW_empty, &Compiler::instr_empty},
-        {RW.RW_endLoop, &Compiler::instr_endLoop},
-        {RW.RW_increment, &Compiler::instr_increment},
-        {RW.RW_inline, &Compiler::instr_inline},
-        {RW.RW_load, &Compiler::instr_load},
-        {RW.RW_loads, &Compiler::instr_loads},
-        {RW.RW_logic, &Compiler::instr_logic},
-        {RW.RW_memsize, &Compiler::instr_memsize},
-        {RW.RW_read, &Compiler::instr_read},
-        {RW.RW_reserve, &Compiler::instr_reserve},
-        {RW.RW_sub, &Compiler::instr_sub},
-        {RW.RW_var, &Compiler::instr_var},
-        {RW.RW_vout, &Compiler::instr_vout},
-        {RW.RW_wnz, &Compiler::instr_wnz}
+        {RW.RW_add,         &Compiler::instr_add},
+        {RW.RW_alias,       &Compiler::instr_alias},
+        {RW.RW_aout,        &Compiler::instr_aout},
+        {RW.RW_compare,     &Compiler::instr_compare},
+        {RW.RW_copy,        &Compiler::instr_copy},
+        {RW.RW_cout,        &Compiler::instr_cout},
+        {RW.RW_decrement,   &Compiler::instr_decrement},
+        {RW.RW_empty,       &Compiler::instr_empty},
+        {RW.RW_endIf,       &Compiler::instr_endIf},
+        {RW.RW_endLoop,     &Compiler::instr_endLoop},
+        {RW.RW_increment,   &Compiler::instr_increment},
+        {RW.RW_if,          &Compiler::instr_if},
+        {RW.RW_inline,      &Compiler::instr_inline},
+        {RW.RW_load,        &Compiler::instr_load},
+        {RW.RW_loads,       &Compiler::instr_loads},
+        {RW.RW_logic,       &Compiler::instr_logic},
+        {RW.RW_memsize,     &Compiler::instr_memsize},
+        {RW.RW_read,        &Compiler::instr_read},
+        {RW.RW_reserve,     &Compiler::instr_reserve},
+        {RW.RW_sub,         &Compiler::instr_sub},
+        {RW.RW_var,         &Compiler::instr_var},
+        {RW.RW_vout,        &Compiler::instr_vout},
+        {RW.RW_wnz,         &Compiler::instr_wnz}
 
     };
 
@@ -326,7 +328,8 @@ int Compiler::generate_variable_address() {
         - not already used by a variable    
     */
 
-    for (int i = 0; i < memsize; i++) {
+    // address ?0 should not be used!
+    for (int i = 1; i < memsize; i++) {
         if ((!is_reserved(i, reserved)) && (!is_variable(i))) {
             return i;
         }
@@ -518,6 +521,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
         tempReservedArea = {};
 
         get_cur_tok(); // use *curTokPtr to access the value
+        std::cout << curTok << std::endl;
 
         if (curTokPtr == nullptr) {
             break;
