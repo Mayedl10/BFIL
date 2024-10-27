@@ -426,6 +426,16 @@ this function scans for various things and manages variable creation
 
 
         // if token != keyword, but is variable, replace with address string
+
+/*
+    conditions for replacing:
+    - is declared var
+    - t-1 != "var"
+    - (t-3 != "var") && (t-1 == "=")
+    - isn't keyword
+
+*/
+
         if (
             // only true if t has been declared as a variable
             (var_exists(t)) &&
@@ -434,7 +444,7 @@ this function scans for various things and manages variable creation
             // check if varDeclatationIdxs contains t-1 or t-3
             !(
                 vector_contains_int(varDeclatationIdxs, i-1) ||
-                vector_contains_int(varDeclatationIdxs, i-3)
+                (vector_contains_int(varDeclatationIdxs, i-3) && (Tokens[i-1] == RW.RW_operator_EQ))
             )
             
         ) {
