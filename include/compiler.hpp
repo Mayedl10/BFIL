@@ -139,6 +139,7 @@ public:
     int hex_to_int(std::string hexString);
     std::string slice_string(const std::string& targetString, int idx1, int idx2);
     int address_string_to_int(std::string addressString, std::string prefix = "?");
+    bool both_variables_and_addresses_used();
     void scan_code_var(int &tIdx, std::vector<int> &varDeclatationIdxs);
     void scan_code();
     std::string construct_address_str(int addr);

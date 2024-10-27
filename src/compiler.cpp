@@ -354,6 +354,28 @@ bool Compiler::var_exists(std::string var) {
     return !(variableAddressLookup.find(var) == variableAddressLookup.end());
 }
 
+bool Compiler::both_variables_and_addresses_used() {
+
+    manualAddressingUsed = false;
+    variablesUsed = false;
+
+    for (int i = 0; i < (int)(Tokens.size()); i++) {
+
+        if (
+            (Tokens[i][0] == RW.RW_prefix_ADDR[0]) &&
+            ((Tokens[i-1] != RW.RW_reserve) && (Tokens[i-3] != RW.RW_reserve))
+            ) {
+            manualAddressingUsed = true;
+        
+        } else if (Tokens[i] == RW.RW_var) {
+            variablesUsed = true;
+        }
+    }
+
+    return (manualAddressingUsed && variablesUsed);
+
+};
+
 void Compiler::scan_code_var(int &tIdx, std::vector<int> &varDeclatationIdxs) {
 
     // check if next token has already been added as a variable, error if yes
@@ -455,36 +477,6 @@ this function scans for various things and manages variable creation
             Tokens[i] = construct_address_str(variableAddressLookup[t]);
         } 
 
-        // check for manual addressing
-        if ((t[0] == '?') && (is_valid_decimal(t.substr(1)))) {
-
-            // check if "reserve" has been used
-
-            // conditions:
-            //                          0       1  2 3
-            // i-1 != "reserve"         reserve t  ~ ?n
-            // i-3 != "reserve"         reserve ?n ~ t
-
-            // if i >= 1, check for i-1
-            // if i >= 3, check for i-3
-
-            if (i >= 1) {
-                if (Tokens[i-1] == RW.RW_reserve) {
-                    continue;
-                }
-
-            } else if (i >= 3) {
-                if (Tokens[i-3] == RW.RW_reserve) {}
-                    continue;
-            }
-            
-            manualAddressingUsed = true;
-        
-        // check if variables are used
-        } else if (t == RW.RW_var) {
-            variablesUsed = true;
-        }
-
     }
 
     if (memsizeCount > 1) {
@@ -521,15 +513,11 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     curTokPtr = &curTok;
     ptrPosPtr = &ptrPosition;
 
-    scan_code();
-
-    if (manualAddressingUsed && variablesUsed) {
+    if (both_variables_and_addresses_used()) {
         raise_compiler_warning(CompilerWarnings::variablesAndDirectAddressing, "Using direct addresses AND variables might lead to unwanted behaviour!");
     }
 
-    for (auto y: Tokens) {
-        std::cout << y << " ";
-    }
+    scan_code();
 
     while (tPtr < tPtrLimit) {
         tempInt = 0;
