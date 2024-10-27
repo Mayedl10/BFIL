@@ -24,8 +24,10 @@ struct ReservedWords {
     const std::string RW_cout         = "cout";           // constant output
     const std::string RW_decrement    = "decrement";      // decrement
     const std::string RW_empty        = "empty";          // sets a range of addresses to 0
-    const std::string RW_endLoop      = "endLoop";        // }
+    const std::string RW_endIf        = "endIf";          // } for if
+    const std::string RW_endLoop      = "endLoop";        // } for while
     const std::string RW_increment    = "increment";      // increment value
+    const std::string RW_if           = "if";             // if statements, matches with endIf
     const std::string RW_inline       = "inline";         // keep stuff in output
     const std::string RW_load         = "load";           // load value into address
     const std::string RW_loads        = "loads";          // load, but with multiple values
@@ -55,8 +57,10 @@ struct ReservedWords {
         RW_cout,
         RW_decrement,
         RW_empty,
+        RW_endIf,
         RW_endLoop,
         RW_increment,
+        RW_if,
         RW_inline,
         RW_load,
         RW_loads,

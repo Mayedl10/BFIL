@@ -108,7 +108,7 @@ class Compiler {
     std::vector<int> tempIntVect;
     std::array<int, 2> tempReservedArea;
     std::stack<int> loopingAddressesStack;
-    std::stack<int> branchingAddressesStack;
+    std::stack<int> ifZeroAddressStack;
     std::string logicMode;
     int ptrPosition = 0;
     std::vector<std::pair<std::string, int>> variableInitialValues;
@@ -148,27 +148,29 @@ public:
     bool vector_contains_int(std::vector<int> vec, int i);
     bool var_exists(std::string var);
 
-    void instr_add ();
-    void instr_alias ();
-    void instr_aout ();
-    void instr_compare ();
-    void instr_copy ();
-    void instr_cout ();
-    void instr_decrement ();
-    void instr_empty ();
+    void instr_add();
+    void instr_alias();
+    void instr_aout();
+    void instr_compare();
+    void instr_copy();
+    void instr_cout();
+    void instr_decrement();
+    void instr_empty();
+    void instr_endIf();
     void instr_endLoop ();
-    void instr_increment ();
-    void instr_inline ();
-    void instr_load ();
-    void instr_loads ();
-    void instr_logic ();
-    void instr_memsize ();
-    void instr_read ();
-    void instr_reserve ();
-    void instr_sub ();
+    void instr_if();
+    void instr_increment();
+    void instr_inline();
+    void instr_load();
+    void instr_loads();
+    void instr_logic();
+    void instr_memsize();
+    void instr_read();
+    void instr_reserve();
+    void instr_sub();
     void instr_var(); // only sets default values
-    void instr_vout ();
-    void instr_wnz ();
+    void instr_vout();
+    void instr_wnz();
 
     std::string compile(std::vector<std::string> Tokens_, bool displayWarnings);
 
