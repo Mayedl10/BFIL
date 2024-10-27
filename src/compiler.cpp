@@ -81,6 +81,9 @@ void Compiler::define_globals(bool displayWarnings) {
 
     };
 
+    this->reserved = {{0, 0}};
+    
+
 }
 
 void Compiler::raise_compiler_error(int errorID, std::string message, std::string errorContext) {
@@ -226,7 +229,8 @@ std::array<int, 2> Compiler::find_reserved(std::vector<std::array<int, 2>> reser
     std::vector<std::array<int, 3>> candidates_and_distances;
     std::array<int, 3> ret;
     
-    for (int ctr = 0; ctr < reserved_segments_vector.size(); ctr++) {
+    // never return [0] bc that's always ?0
+    for (int ctr = 1; ctr < reserved_segments_vector.size(); ctr++) {
 
         if (reserved_segments_vector[ctr][1] - reserved_segments_vector[ctr][0] >= requiredSize) {
 
@@ -517,7 +521,6 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     curTokPtr = &curTok;
     ptrPosPtr = &ptrPosition;
 
-
     scan_code();
 
     if (manualAddressingUsed && variablesUsed) {
@@ -527,7 +530,6 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     for (auto y: Tokens) {
         std::cout << y << " ";
     }
-    exit(0);
 
     while (tPtr < tPtrLimit) {
         tempInt = 0;
