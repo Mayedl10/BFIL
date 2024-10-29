@@ -17,7 +17,7 @@ std::string get_file_content_as_string(const std::string& filename) {
     return buffer.str();
 }
 
-int write_to_file(std::string path, std::string fileExtension, std::string content) {
+int write_to_file(std::string path, std::string fileExtension, std::string content, bool silent) {
 
     std::string filePath = path + fileExtension;
     std::ofstream file(filePath);
@@ -25,7 +25,11 @@ int write_to_file(std::string path, std::string fileExtension, std::string conte
     if (file) {
         file << content;
         file.close();
-        std::cout << "File written successfully: " << filePath << std::endl;
+    
+        if (!silent) {
+            std::cout << "File written successfully: " << filePath << std::endl;
+        }
+    
         return 0;
 
     } else {
