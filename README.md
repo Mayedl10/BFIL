@@ -13,7 +13,7 @@ Use the compiler with the following options:
 
 `-O n`        `optimise` at optimisation level n (1 removes redundant patterns like +-, 2 does that and removes all characters except +-<>,.[] and \n)
 
-`-c`          `concise` - disable warnings
+`-c`          `concise` - disable warnings and "file written successfully" text
 
 Example usage: `BFIL -i /path/to/compare.bi -o /path/to/compare.bf`
 <br/><br/><br/>-----<br/><br/><br/>
@@ -24,6 +24,17 @@ Numbers that have a ? in front of them are addresses.
 To specify the memory size your brainfuck interpreter has, use `memsize`. This is the only thing in this language that uses hexadecimal values. `memsize 0x8000`
 
 In order for your code to work, you need to reserve memory using `reserve`: `reserve ?16 ~ ?32`*
+
+**WARNING:** `load` and `copy` are legacy instructions. They will continue to be supported for backwards-compatability, but it is recommended to use the `=` operator instead.
+
+The `=` operator:
+```
+?addr = [constant numerical value]
+?addr = ?addr
+
+?1 = 5
+?2 = ?1
+```
 
 To load a value into an address, use `load ?0 ~ 10`*
 
@@ -73,6 +84,14 @@ logic ?address and ?address ~ ?address
 logic ?address not ~ ?address
 ```
 
+Branching:
+Only `if` exists, `else` needs to be implemented at the user level. If this feature is used, utilising `?0` is even less advisable since it uses that address internally.
+```
+if ?address
+    [some code]
+endIf
+```
+
 Looping:
 ```
 whileNotZero ?address
@@ -106,6 +125,8 @@ results in `someCode test someCode`
 
 <br><br><br><br>
 *You can use anything instead of ~. I like to use "+=", "-=", "<-", "->".
+<br>
+**In the syntax examples from this `readme`, variables can usually be substituted for "?address", since variables are just replaced by addresses at compile time.
 
 If you want to compile this yourself, I am on windows and used `g++ *.cpp` to compile. This should work, assuming you're running `g++` in the source directory. You may need to modify `main.cpp` when not using Windows because of filepath stuff because Windows just likes its `\`s for paths. `main.cpp` is just responsible for the command line interface so you could easily make your own if you don't like that mess of a command-parameter-thing I coded.
 
