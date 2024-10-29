@@ -72,7 +72,8 @@ enum CompilerErrors : int {
     invalidLogicOperator,
     outOfMemory,
     multipleVariableDefinitions,
-    invalidVariableName
+    invalidVariableName,
+    unexpectedToken
 
 };
 
@@ -92,8 +93,6 @@ class Compiler {
     std::vector<std::string> Tokens;
     int tPtr;
     std::vector<std::array<int, 2>> reserved;
-    int errorCount;
-    int warnCount;
     std::string curTok;
     bool displayWarnings;
 
@@ -122,6 +121,9 @@ class Compiler {
     std::unordered_map<std::string, void (Compiler::*)()> instructionMap;
 
 public:
+
+    int errorCount;
+    int warnCount;
 
     void define_globals(bool displayWarnings);
     void raise_compiler_error(int errorID, std::string message = "", std::string errorContext = "");

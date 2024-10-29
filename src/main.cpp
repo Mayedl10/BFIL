@@ -98,7 +98,9 @@ int main(int argc, char* argv[]) {
     std::cout << "compiledCode: " << compiledCode << std::endl; 
 #endif
 
-    if (compiledCode != "\n") {
+    
+
+    if (comp.errorCount == 0) {
         write_to_file(outputFile, "", compiledCode);
         
     } else {

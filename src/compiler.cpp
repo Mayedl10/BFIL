@@ -534,7 +534,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
             (this->*instructionMap[curTok])();
 
         } else {
-
+            raise_compiler_error(CompilerErrors::unexpectedToken, "Unexpected Token: Token nr. " + std::to_string(tPtr) + ".\nNote, that variables have been replaced with address strings (?n).", "... " + Tokens[tPtr] + " ...");
         }
 
         tPtr++;
