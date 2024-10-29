@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     
 
     if (comp.errorCount == 0) {
-        write_to_file(outputFile, "", compiledCode);
+        write_to_file(outputFile, "", compiledCode, !displayWarnings);
         
     } else {
         std::cout << "------------------------------------------------------------------\n|Code will not be saved to file due to errors during compilation.|\n------------------------------------------------------------------" << std::endl;
