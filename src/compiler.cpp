@@ -517,7 +517,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     define_globals(displayWarnings);
 
     out = "";
-    Tokens = Tokens_string_vector;  // just doing this so I can use a global variable instead of a local parameter
+    Tokens = Tokens_string_vector;  // just doing this so I can use a member variable instead of a local parameter
     tPtr = 0;                       // token "pointer"
     int tPtrLimit = Tokens.size();  // highest possible value for the token pointer
     curTokPtr = &curTok;
@@ -551,7 +551,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
                 get_cur_tok();
                 this->instr_op_EQ();
 
-            } else {
+            } else if (curTok != RW.RW_PADDING_TOKEN) {                
                 raise_compiler_error(CompilerErrors::unexpectedToken, "Unexpected Token: Token nr. " + std::to_string(tPtr) + ".\nNote, that variables have been replaced with address strings (?n).", "... " + Tokens[tPtr] + " ...");
             }
         }

@@ -56,6 +56,12 @@ static void add_token(std::string value, std::string type) {
     retV.push_back(tempT);
 }
 
+static void add_padding(std::vector<std::string>& retV) {
+    ReservedWords RW;
+    retV.insert(retV.begin(), PADDING_SIZE, RW.RW_PADDING_TOKEN);
+    retV.insert(retV.end(), PADDING_SIZE, RW.RW_PADDING_TOKEN);
+}
+
 std::vector<std::string> tokenize(std::string code) {
 
     ReservedWords RW;
@@ -92,5 +98,7 @@ std::vector<std::string> tokenize(std::string code) {
 
     }
     
+    add_padding(retV);
+
     return retV;
 }
