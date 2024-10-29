@@ -1,6 +1,12 @@
 #include "compiler.hpp"
 #include "common.hpp"
 
+void Compiler::load_const_value(int target, int value) {
+    out += move_to(target);
+    out += CS.setToZero;
+    out += add_n_chars(value, BFO.plus[0]);
+}
+
 void Compiler::instr_load () {
 
     tPtr++;

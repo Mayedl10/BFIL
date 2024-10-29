@@ -25,7 +25,7 @@ void Compiler::copy_values(int source, int target, bool allowReserved) {
         
         raise_compiler_warning(CompilerWarnings::accessingReservedAddress,
         "Using a reserved address is not recommended!",              
-        "... 'copy address <- " + curTok + "' ..." 
+        "... " + curTok + " ..." 
         );
     }
 

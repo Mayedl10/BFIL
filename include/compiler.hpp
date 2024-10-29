@@ -73,7 +73,8 @@ enum CompilerErrors : int {
     outOfMemory,
     multipleVariableDefinitions,
     invalidVariableName,
-    unexpectedToken
+    unexpectedToken,
+    typeError
 
 };
 
@@ -140,6 +141,7 @@ public:
     std::array<int, 2> find_reserved(std::vector<std::array<int, 2>> reserved_segments_vector, int requiredSize);
     int hex_to_int(std::string hexString);
     std::string slice_string(const std::string& targetString, int idx1, int idx2);
+    bool is_valid_address_str(std::string addressString);
     int address_string_to_int(std::string addressString, std::string prefix = "?");
     bool both_variables_and_addresses_used();
     void scan_code_var(int &tIdx, std::vector<int> &varDeclatationIdxs);
@@ -150,6 +152,7 @@ public:
     bool vector_contains_string(std::vector<std::string> vec, std::string str);
     bool vector_contains_int(std::vector<int> vec, int i);
     bool var_exists(std::string var);
+    void load_const_value(int target, int value); // in instr_LOAD.cpp
     void copy_values(int source, int target, bool allowReserved); // in instr_COPY.cpp
 
     void instr_add();
@@ -175,6 +178,8 @@ public:
     void instr_var(); // only sets default values
     void instr_vout();
     void instr_wnz();
+
+    void instr_op_EQ();
 
     std::string compile(std::vector<std::string> Tokens_, bool displayWarnings);
 

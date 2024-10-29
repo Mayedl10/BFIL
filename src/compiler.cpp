@@ -53,7 +53,7 @@ void Compiler::define_globals(bool displayWarnings) {
     this->warnCount = 0;
     this->displayWarnings = displayWarnings;
 
-    this->instructionMap = {
+    this->instructionMap = { // DOES NOT CONTAIN instr_OP_EQ
 
         {RW.RW_add,         &Compiler::instr_add},
         {RW.RW_alias,       &Compiler::instr_alias},
@@ -154,7 +154,7 @@ bool Compiler::is_valid_hexadecimal(std::string& str) {
 
 bool Compiler::is_valid_decimal(std::string str) {
     for (char c: str) {
-        if (!((c < '0') || (c > '9'))) {
+        if ((c < '0') || (c > '9')) {
             return false;
         }
     }
@@ -307,6 +307,16 @@ std::string Compiler::slice_string(const std::string& targetString, int idx1, in
 
     int sliceLength = idx2 - idx1 + 1;
     return targetString.substr(idx1, sliceLength);
+}
+
+bool Compiler::is_valid_address_str(std::string addressString) {
+
+    // i am not combining these into one if statement because i don't wanna try accessing std[1] on a size 1 string or smth
+
+    if ((addressString.size() <= 1)) {
+        return false;
+    }
+    return ((addressString[0] == RW.RW_prefix_ADDR[0]) && (is_valid_decimal(addressString.substr(1))));
 }
 
 int Compiler::address_string_to_int(std::string addressString, std::string prefix) {
@@ -520,6 +530,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     scan_code();
 
     while (tPtr < tPtrLimit) {
+
         tempInt = 0;
         tempStr = "";
         tempIntVect.clear();
@@ -534,7 +545,15 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
             (this->*instructionMap[curTok])();
 
         } else {
-            raise_compiler_error(CompilerErrors::unexpectedToken, "Unexpected Token: Token nr. " + std::to_string(tPtr) + ".\nNote, that variables have been replaced with address strings (?n).", "... " + Tokens[tPtr] + " ...");
+            
+            if (is_valid_address_str(curTok) && (Tokens[tPtr+1] == RW.RW_operator_EQ)) {
+                tPtr++;
+                get_cur_tok();
+                this->instr_op_EQ();
+
+            } else {
+                raise_compiler_error(CompilerErrors::unexpectedToken, "Unexpected Token: Token nr. " + std::to_string(tPtr) + ".\nNote, that variables have been replaced with address strings (?n).", "... " + Tokens[tPtr] + " ...");
+            }
         }
 
         tPtr++;
