@@ -74,7 +74,15 @@ enum CompilerErrors : int {
     multipleVariableDefinitions,
     invalidVariableName,
     unexpectedToken,
-    typeError
+    typeError,
+    nestedSubroutineDefinition,
+    defWithoutReturn,
+    returnWithoutDef,
+    invalidSubroutineIdentifier,
+    
+    INTERNAL_ERROR_insert_subroutine_tokens_A,
+    INTERNAL_ERROR_insert_subroutine_tokens_B,
+    INTERNAL_ERROR_insert_subroutine_tokens_C
 
 };
 
@@ -113,6 +121,7 @@ class Compiler {
     int ptrPosition = 0;
     std::vector<std::pair<std::string, int>> variableInitialValues;
     std::unordered_map<std::string, int> variableAddressLookup;
+    bool insideSubroutine;
 
     ReservedWords RW;
     CodeSnippets CS;
@@ -120,6 +129,7 @@ class Compiler {
     OperationRequiredMemory ORM;
 
     std::unordered_map<std::string, void (Compiler::*)()> instructionMap;
+    std::unordered_map<std::string, std::vector<std::string>> subroutineTokens;
 
 public:
 
@@ -154,14 +164,19 @@ public:
     bool var_exists(std::string var);
     void load_const_value(int target, int value); // in instr_LOAD.cpp
     void copy_values(int source, int target, bool allowReserved); // in instr_COPY.cpp
+    void generate_subroutines();
+    void insert_subroutine_tokens();
+    bool subroutine_exists(std::string name);
 
     void instr_add();
     void instr_alias();
     void instr_aout();
+    void instr_call(); // WIP
     void instr_compare();
     void instr_copy();
     void instr_cout();
     void instr_decrement();
+    void instr_def(); // WIP
     void instr_empty();
     void instr_endIf();
     void instr_endLoop ();
@@ -174,6 +189,7 @@ public:
     void instr_memsize();
     void instr_read();
     void instr_reserve();
+    void instr_return(); // WIP
     void instr_sub();
     void instr_var(); // only sets default values
     void instr_vout();
