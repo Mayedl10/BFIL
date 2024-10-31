@@ -84,13 +84,28 @@ logic ?address and ?address ~ ?address
 logic ?address not ~ ?address
 ```
 
-Branching:
+Branching:<br>
 Only `if` exists, `else` needs to be implemented at the user level. If this feature is used, utilising `?0` is even less advisable since it uses that address internally.
 ```
 if ?address
     [some code]
 endIf
 ```
+
+Subroutines:<br>
+BFIL subroutines work like functions in other languages, but there are some differences:
+- no parameters
+- all variables exist in the global scope
+- no return values
+
+```
+def foo
+    [some code]
+return
+
+call foo
+```
+
 
 Looping:
 ```
