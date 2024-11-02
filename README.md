@@ -15,6 +15,8 @@ Use the compiler with the following options:
 
 `-c`          `concise` - disable warnings and "file written successfully" text
 
+`-L`          `linker directory` - adds a directory to be searched upon `include` statement
+
 Example usage: `BFIL -i /path/to/compare.bi -o /path/to/compare.bf`
 <br/><br/><br/>-----<br/><br/><br/>
 Numbers that have a ? in front of them are addresses.
@@ -97,6 +99,8 @@ BFIL subroutines work like functions in other languages, but there are some diff
 - no parameters
 - all variables exist in the global scope
 - no return values
+
+Subroutines can be imported from another file using `include file.bi`. To compile the example given in `examples/include`, these parameters can be used: `-i examples/include/include.bi -o output/include.bi -L examples/include -O 2`. Repeated inclusion of the same file is prevented automatically.
 
 ```
 def foo

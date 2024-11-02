@@ -19,6 +19,8 @@ void Compiler::find_included_files() {
 void Compiler::include_files() {
 
     find_included_files();
+    
+    std::vector<std::string> previouslyIncluded = {};
 
     std::cout << "\n\n -- files --" << std::endl;
     for (auto y: includedFiles) {
@@ -38,9 +40,10 @@ void Compiler::include_files() {
         foundFile = false;
 
         for (auto folder: linkerDirectories) {
-            if (file_exists(folder + "/" + file)) {
+            if (file_exists(folder + "/" + file) && !(vector_contains_string(previouslyIncluded, file))) {
                 _tokens = tokenize(get_file_content_as_string(folder + "/" + file));
                 generate_subroutines(_tokens);
+                previouslyIncluded.push_back(file);
                 foundFile = true;
             }
         }
