@@ -15,7 +15,7 @@ Use the compiler with the following options:
 
 `-c`          `concise` - disable warnings and "file written successfully" text
 
-`-L`          `linker directory` - adds a directory to be searched upon `include` statement
+`-L`          `linker directory` - adds a directory to be searched upon `include` statement (equivalent to gcc/g++'s `-I`)
 
 Example usage: `BFIL -i /path/to/compare.bi -o /path/to/compare.bf`
 <br/><br/><br/>-----<br/><br/><br/>
