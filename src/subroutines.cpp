@@ -20,7 +20,38 @@ foreach token :
 
 void Compiler::generate_subroutines() {
 
-    subroutineTokens = {}; // unordered_map
+    tempStr = "";
+    std::vector<std::string> subroutineContent = {};
+
+    for (int i = 0; i < (int)(Tokens.size()); i++) {
+        if (Tokens[i] == RW.RW_def) {
+
+            i++;
+            tempStr = Tokens[i];
+            
+            i++;
+            while (Tokens[i] != RW.RW_return) {
+
+                if (i >= (int)(Tokens.size())) {
+                    raise_compiler_error(CompilerErrors::defWithoutReturn, "Subroutine without return statement.");
+                    break;
+                }
+
+                if (Tokens[i] == RW.RW_def) {
+                    raise_compiler_error(CompilerErrors::nestedSubroutineDefinition, "Cannot create subroutine inside subroutine.", "def keyowrd found inside " + tempStr);
+                }
+
+                subroutineContent.push_back(Tokens[i]);
+                i++;
+            }
+
+            subroutineTokens.insert({tempStr, subroutineContent});
+            subroutineContent.clear();
+        }
+    }
+}
+
+void Compiler::generate_subroutines(std::vector<std::string> &Tokens) {
 
     tempStr = "";
     std::vector<std::string> subroutineContent = {};
@@ -33,6 +64,11 @@ void Compiler::generate_subroutines() {
             
             i++;
             while (Tokens[i] != RW.RW_return) {
+
+                if (i >= (int)(Tokens.size())) {
+                    raise_compiler_error(CompilerErrors::defWithoutReturn, "Subroutine without return statement.");
+                    break;
+                }
 
                 if (Tokens[i] == RW.RW_def) {
                     raise_compiler_error(CompilerErrors::nestedSubroutineDefinition, "Cannot create subroutine inside subroutine.", "def keyowrd found inside " + tempStr);
@@ -93,7 +129,7 @@ void Compiler::insert_subroutine_tokens() {
                 }
 
             } else {
-                raise_compiler_error(CompilerErrors::invalidSubroutineIdentifier, "Subroutine " + Tokens[i] + " is undefined.", "+++ " + RW.RW_call + " " + Tokens[i] + " ...");
+                raise_compiler_error(CompilerErrors::invalidSubroutineIdentifier, "Subroutine " + Tokens[i] + " is undefined.", "... " + RW.RW_call + " " + Tokens[i] + " ...");
             }
         
         } else if (Tokens[i] == RW.RW_def) {

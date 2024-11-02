@@ -52,21 +52,23 @@ void Compiler::define_globals(bool displayWarnings) {
     this->warnCount = 0;
     this->displayWarnings = displayWarnings;
     this->insideSubroutine = false;
+    this->subroutineTokens = {};
 
     this->instructionMap = { // DOES NOT CONTAIN instr_OP_EQ
 
         {RW.RW_add,         &Compiler::instr_add},
         {RW.RW_alias,       &Compiler::instr_alias},
         {RW.RW_aout,        &Compiler::instr_aout},
-        {RW.RW_call,        &Compiler::instr_call}, // WIP
+        {RW.RW_call,        &Compiler::instr_call},
         {RW.RW_compare,     &Compiler::instr_compare},
         {RW.RW_copy,        &Compiler::instr_copy},
         {RW.RW_cout,        &Compiler::instr_cout},
         {RW.RW_decrement,   &Compiler::instr_decrement},
-        {RW.RW_def,         &Compiler::instr_def}, // WIP
+        {RW.RW_def,         &Compiler::instr_def},
         {RW.RW_empty,       &Compiler::instr_empty},
         {RW.RW_endIf,       &Compiler::instr_endIf},
         {RW.RW_endLoop,     &Compiler::instr_endLoop},
+        {RW.RW_include,     &Compiler::instr_include},
         {RW.RW_increment,   &Compiler::instr_increment},
         {RW.RW_if,          &Compiler::instr_if},
         {RW.RW_inline,      &Compiler::instr_inline},
@@ -76,7 +78,7 @@ void Compiler::define_globals(bool displayWarnings) {
         {RW.RW_memsize,     &Compiler::instr_memsize},
         {RW.RW_read,        &Compiler::instr_read},
         {RW.RW_reserve,     &Compiler::instr_reserve},
-        {RW.RW_return,      &Compiler::instr_return}, // WIP
+        {RW.RW_return,      &Compiler::instr_return},
         {RW.RW_sub,         &Compiler::instr_sub},
         {RW.RW_var,         &Compiler::instr_var},
         {RW.RW_vout,        &Compiler::instr_vout},
@@ -515,6 +517,10 @@ bool Compiler::vector_contains_int(std::vector<int> vec, int i) {
     return false;
 }
 
+void Compiler::add_linker_directory(std::string path) {
+    this->linkerDirectories.push_back(path);
+}
+
 std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, bool displayWarnings) {
 
     define_globals(displayWarnings);
@@ -533,6 +539,7 @@ std::string Compiler::compile(std::vector<std::string> Tokens_string_vector, boo
     scan_code();
 
     generate_subroutines();
+    include_files();
     insert_subroutine_tokens();
 
     while (tPtr < tPtrLimit) {

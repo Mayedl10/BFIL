@@ -3,6 +3,11 @@
 #include <iostream>
 #include <sstream>
 
+bool file_exists(const std::string path) {
+    std::ifstream file(path);
+    return file.good();
+}
+
 std::string get_file_content_as_string(const std::string& filename) {
 
     std::ifstream file(filename);

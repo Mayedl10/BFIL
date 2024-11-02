@@ -79,10 +79,10 @@ enum CompilerErrors : int {
     defWithoutReturn,
     returnWithoutDef,
     invalidSubroutineIdentifier,
-    
     INTERNAL_ERROR_insert_subroutine_tokens_A,
     INTERNAL_ERROR_insert_subroutine_tokens_B,
-    INTERNAL_ERROR_insert_subroutine_tokens_C
+    INTERNAL_ERROR_insert_subroutine_tokens_C,
+    includedFileNotFound
 
 };
 
@@ -131,6 +131,9 @@ class Compiler {
     std::unordered_map<std::string, void (Compiler::*)()> instructionMap;
     std::unordered_map<std::string, std::vector<std::string>> subroutineTokens;
 
+    std::vector<std::string> includedFiles;
+    std::vector<std::string> linkerDirectories = {"./"};
+
 public:
 
     int errorCount;
@@ -164,23 +167,27 @@ public:
     bool var_exists(std::string var);
     void load_const_value(int target, int value); // in instr_LOAD.cpp
     void copy_values(int source, int target, bool allowReserved); // in instr_COPY.cpp
+    void find_included_files();
+    void include_files();
     void generate_subroutines();
+    void generate_subroutines(std::vector<std::string> &Tokens);
     void insert_subroutine_tokens();
     bool subroutine_exists(std::string name);
 
     void instr_add();
     void instr_alias();
     void instr_aout();
-    void instr_call(); // WIP
+    void instr_call();
     void instr_compare();
     void instr_copy();
     void instr_cout();
     void instr_decrement();
-    void instr_def(); // WIP
+    void instr_def();
     void instr_empty();
     void instr_endIf();
     void instr_endLoop ();
     void instr_if();
+    void instr_include();
     void instr_increment();
     void instr_inline();
     void instr_load();
@@ -189,7 +196,7 @@ public:
     void instr_memsize();
     void instr_read();
     void instr_reserve();
-    void instr_return(); // WIP
+    void instr_return();
     void instr_sub();
     void instr_var(); // only sets default values
     void instr_vout();
@@ -197,6 +204,7 @@ public:
 
     void instr_op_EQ();
 
+    void add_linker_directory(std::string path);
     std::string compile(std::vector<std::string> Tokens_, bool displayWarnings);
 
 };

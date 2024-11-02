@@ -67,6 +67,10 @@ int main(int argc, char* argv[]) {
         
         }
 
+        if (strcmp(argv[i], "-L") == 0) {
+            comp.add_linker_directory(std::string(argv[i+1]));
+        }
+
     }
 
 
