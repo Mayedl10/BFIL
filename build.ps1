@@ -2,17 +2,13 @@ $ScriptPath = $MyInvocation.MyCommand.Path
 $ScriptDirectory = Split-Path $ScriptPath
 Set-Location -Path $ScriptDirectory
 
-$outFile = "main.exe"
-$binaryPath = "./$outFile"
-$srcFolderA = "src"
-$srcFolderB = "src/instr"
-$includeFolder = "include"
+$binaryPath = "./main.exe"
 
 if (Test-Path $binaryPath) {
     Remove-Item $binaryPath
 }
 
-g++ $srcFolderA/*.cpp $srcFolderB/*.cpp -I $includeFolder -o $outFile
+g++ src/*.cpp src/*.cpp -I include -o $outFile
 
 if (!(Test-Path $binaryPath)) {
     Write-Host "[Compilation Failed]"
